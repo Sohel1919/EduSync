@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XMarkIcon, DocumentArrowUpIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { useUser } from '@clerk/clerk-react';
+import { useAuth } from '../../context/AuthContext'; // Updated import
 
 const BeneficiaryModal = ({ project, onClose }) => {
   const [formData, setFormData] = useState({
@@ -15,15 +15,16 @@ const BeneficiaryModal = ({ project, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [filePreview, setFilePreview] = useState(null);
   const [errors, setErrors] = useState({});
-  const { user } = useUser();
+  const { user } = useAuth(); // Updated to use AuthContext
 
   // Pre-fill user data if available
   useEffect(() => {
     if (user) {
       setFormData(prev => ({
         ...prev,
-        fullName: user.fullName || `${user.firstName} ${user.lastName}`.trim() || '',
-        phone: user.primaryPhoneNumber?.phoneNumber || user.phoneNumbers?.[0]?.phoneNumber || ''
+        fullName: user.fullName || `${user.firstName} ${user.lastName}`.trim() || user.name || user.email?.split('@')[0] || '',
+        // Note: You might want to add phone number to your user object in the backend
+        phone: user.phone || ''
       }));
     }
   }, [user]);

@@ -1,4 +1,3 @@
-// client/src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
@@ -7,6 +6,9 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { RoleProvider } from "./context/RoleContext";
 import './index.css';
 
+// Layouts
+import AdminLayout from './layouts/AdminLayout';
+
 // Public pages (no authentication required)
 import HomePage from './pages/public/HomePage';
 import AboutPage from './pages/public/AboutPage';
@@ -14,7 +16,7 @@ import SignInPage from './pages/auth/SignInPage';
 import SignUpPage from './pages/auth/SignUpPage';
 import VerifyEmailPage from './pages/auth/VerifyEmailPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
-import ResetPasswordPage from './pages/auth/ResetPasswordPage'; // Add this import
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import UnauthorizedPage from './pages/public/UnauthorizedPage';
 import ProjectsPage from './pages/public/ProjectsPage';
 import VolunteerPage from './pages/public/VolunteerPage';
@@ -24,11 +26,32 @@ import BeneficiaryApplicationPage from './pages/public/BeneficiaryApplicationPag
 // Private pages (require authentication, any role)
 import DonationPage from './pages/private/DonationPage';
 
-// Role-specific pages (require specific roles)
+// Admin pages (matching your layout tabs)
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminProjects from './pages/admin/AdminProjects';
+import AddProject from './pages/admin/AddProject';
+import EditProject from './pages/admin/EditProject';
+import AdminVolunteers from './pages/admin/AdminVolunteers';
+import AdminDonations from './pages/admin/AdminDonations';
+import AdminProjectDonations from './pages/admin/AdminProjectDonations';
+import AdminSettings from './pages/admin/AdminSettings';
+
+// Volunteer pages
 import VolunteerDashboardPage from './pages/volunteer/VolunteerDashboardPage';
+import Tasks from './pages/volunteer/Tasks';
+import Profile from './pages/volunteer/Profile';
+import Attendance from './pages/volunteer/Attendance';
+
+// Donor pages
 import DonorDashboard from './pages/donor/DonorDashboard';
+import Donate from './pages/donor/Donate';
+import History from './pages/donor/History';
+import DonorProfile from './pages/donor/Profile';
+
+// User pages
 import UserDashboard from './pages/user/UserDashboard';
+import UserProjects from './pages/user/Projects';
+import UserEvents from './pages/user/Events';
 import UserProfile from './pages/user/Profile';
 
 // Components
@@ -65,7 +88,11 @@ const Layout = ({ children }) => {
     '/auth/signup',
     '/forgot-password',
     '/reset-password',
-    '/verify-email'
+    '/verify-email',
+    '/admin',
+    '/volunteer',
+    '/donor',
+    '/user'
   ];
 
   const shouldShowFooter = !hideFooterRoutes.some(route => 
@@ -98,7 +125,7 @@ function App() {
                 <Route path="/auth/signup" element={<SignUpPage />} />
                 <Route path="/verify-email" element={<VerifyEmailPage />} />
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="/reset-password" element={<ResetPasswordPage />} /> {/* Add this route */}
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/unauthorized" element={<UnauthorizedPage />} />
                 <Route path="/projects" element={<ProjectsPage />} />
                 <Route path="/volunteer" element={<VolunteerPage />} />
@@ -106,14 +133,6 @@ function App() {
                 <Route path="/projects/:projectId/apply-beneficiary" element={<BeneficiaryApplicationPage />} />
                 
                 {/* Private Routes - Require authentication (any role) */}
-                <Route 
-                  path="/dashboard" 
-                  element={
-                    <ProtectedRoute>
-                      <UserDashboard />
-                    </ProtectedRoute>
-                  } 
-                />
                 <Route 
                   path="/donation" 
                   element={
@@ -123,57 +142,148 @@ function App() {
                   } 
                 />
                 
-                {/* User Profile Route */}
-                <Route 
-                  path="/user/profile" 
-                  element={
-                    <ProtectedRoute>
-                      <UserProfile />
-                    </ProtectedRoute>
-                  } 
-                />
-                
-                {/* Role-specific Routes - Require specific roles */}
+                {/* Admin Routes with Layout */}
                 <Route 
                   path="/admin/*" 
                   element={
                     <ProtectedRoute>
                       <RoleBasedRoute allowedRoles={['admin']}>
-                        <AdminDashboard />
+                        <AdminLayout />
                       </RoleBasedRoute>
                     </ProtectedRoute>
                   } 
-                />
+                >
+                  <Route path="dashboard" element={<AdminDashboard />} />
+                  <Route path="projects" element={<AdminProjects />} />
+                  <Route path="projects/add" element={<AddProject />} />
+                  <Route path="projects/edit/:id" element={<EditProject />} />
+                  <Route path="volunteers" element={<AdminVolunteers />} />
+                  <Route path="donations" element={<AdminDonations />} />
+                  <Route path="project-donations" element={<AdminProjectDonations />} />
+                  <Route path="settings" element={<AdminSettings />} />
+                </Route>
                 
+                {/* Volunteer Routes */}
                 <Route 
                   path="/volunteer/dashboard" 
                   element={
                     <ProtectedRoute>
-                      <RoleBasedRoute allowedRoles={['volunteer']}>
+                      <RoleBasedRoute allowedRoles={['volunteer', 'admin']}>
                         <VolunteerDashboardPage />
                       </RoleBasedRoute>
                     </ProtectedRoute>
                   } 
                 />
-                
                 <Route 
-                  path="/donor/dashboard" 
+                  path="/volunteer/tasks" 
                   element={
                     <ProtectedRoute>
-                      <RoleBasedRoute allowedRoles={['donor']}>
-                        <DonorDashboard />
+                      <RoleBasedRoute allowedRoles={['volunteer', 'admin']}>
+                        <Tasks />
+                      </RoleBasedRoute>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/volunteer/profile" 
+                  element={
+                    <ProtectedRoute>
+                      <RoleBasedRoute allowedRoles={['volunteer', 'admin']}>
+                        <Profile />
+                      </RoleBasedRoute>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/volunteer/attendance" 
+                  element={
+                    <ProtectedRoute>
+                      <RoleBasedRoute allowedRoles={['volunteer', 'admin']}>
+                        <Attendance />
                       </RoleBasedRoute>
                     </ProtectedRoute>
                   } 
                 />
                 
-                {/* User dashboard for regular users */}
+                {/* Donor Routes */}
+                <Route 
+                  path="/donor/dashboard" 
+                  element={
+                    <ProtectedRoute>
+                      <RoleBasedRoute allowedRoles={['donor', 'admin']}>
+                        <DonorDashboard />
+                      </RoleBasedRoute>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/donor/donate" 
+                  element={
+                    <ProtectedRoute>
+                      <RoleBasedRoute allowedRoles={['donor', 'admin']}>
+                        <Donate />
+                      </RoleBasedRoute>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/donor/history" 
+                  element={
+                    <ProtectedRoute>
+                      <RoleBasedRoute allowedRoles={['donor', 'admin']}>
+                        <History />
+                      </RoleBasedRoute>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/donor/profile" 
+                  element={
+                    <ProtectedRoute>
+                      <RoleBasedRoute allowedRoles={['donor', 'admin']}>
+                        <DonorProfile />
+                      </RoleBasedRoute>
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                {/* User Routes */}
                 <Route 
                   path="/user/dashboard" 
                   element={
                     <ProtectedRoute>
-                      <RoleBasedRoute allowedRoles={['user']}>
+                      <RoleBasedRoute allowedRoles={['user', 'beneficiary', 'admin']}>
                         <UserDashboard />
+                      </RoleBasedRoute>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/user/projects" 
+                  element={
+                    <ProtectedRoute>
+                      <RoleBasedRoute allowedRoles={['user', 'beneficiary', 'admin']}>
+                        <UserProjects />
+                      </RoleBasedRoute>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/user/events" 
+                  element={
+                    <ProtectedRoute>
+                      <RoleBasedRoute allowedRoles={['user', 'beneficiary', 'admin']}>
+                        <UserEvents />
+                      </RoleBasedRoute>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/user/profile" 
+                  element={
+                    <ProtectedRoute>
+                      <RoleBasedRoute allowedRoles={['user', 'beneficiary', 'admin']}>
+                        <UserProfile />
                       </RoleBasedRoute>
                     </ProtectedRoute>
                   } 

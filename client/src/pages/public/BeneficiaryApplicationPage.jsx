@@ -17,13 +17,13 @@ import {
   BuildingStorefrontIcon,
   CalendarIcon
 } from '@heroicons/react/24/outline';
-import { useUser } from '@clerk/clerk-react';
+import { useAuth } from '../../context/AuthContext'; 
 import { dummyProjects } from '../../components/projects/ProjectCard';
 
 const BeneficiaryApplicationPage = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
-  const { user, isSignedIn } = useUser();
+  const { user, isAuthenticated } = useAuth(); 
   const [project, setProject] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -87,8 +87,8 @@ const BeneficiaryApplicationPage = () => {
   });
 
   useEffect(() => {
-    if (!isSignedIn) {
-      navigate('/sign-in');
+    if (!isAuthenticated) {
+      navigate('/auth/signin'); 
       return;
     }
 
@@ -104,17 +104,17 @@ const BeneficiaryApplicationPage = () => {
         ...prev,
         personalInfo: {
           ...prev.personalInfo,
-          firstName: user.firstName || '',
-          lastName: user.lastName || ''
+          firstName: user.firstName || user.name?.split(' ')[0] || user.email?.split('@')[0] || '',
+          lastName: user.lastName || user.name?.split(' ')[1] || ''
         },
         contactInfo: {
           ...prev.contactInfo,
-          email: user.primaryEmailAddress?.emailAddress || '',
-          phone: user.primaryPhoneNumber?.phoneNumber || user.phoneNumbers?.[0]?.phoneNumber || ''
+          email: user.email || '',
+          phone: user.phone || ''
         }
       }));
     }
-  }, [projectId, user, isSignedIn, navigate]);
+  }, [projectId, user, isAuthenticated, navigate]);
 
   const handleInputChange = (section, field, value, subField = null) => {
     setFormData(prev => ({

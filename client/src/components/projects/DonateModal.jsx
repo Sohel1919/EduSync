@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { useUser } from '@clerk/clerk-react';
+import { useAuth } from '../../context/AuthContext'; 
 
 const DonateModal = ({ project, onClose }) => {
   const [amount, setAmount] = useState('');
   const [customAmount, setCustomAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { user } = useUser();
+  const { user } = useAuth(); 
 
   const presetAmounts = [500, 1000, 2000, 5000];
 

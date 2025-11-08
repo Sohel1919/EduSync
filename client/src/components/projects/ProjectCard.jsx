@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { HeartIcon, CalendarIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import DonateModal from './DonateModal';
 import { useState } from 'react';
-import { useUser } from '@clerk/clerk-react';
+import { useAuth } from '../../context/AuthContext'; 
 
 // Dummy data for projects
 const dummyProjects = [
@@ -288,24 +288,26 @@ const dummyProjects = [
   }
 ];
 
+
 const ProjectCard = ({ project, onBeneficiaryApply }) => {
   const [showDonateModal, setShowDonateModal] = useState(false);
-  const { isSignedIn } = useUser();
+  const { isAuthenticated, login } = useAuth(); // Updated to use AuthContext
 
   const progress = (project.collectedAmount / project.targetAmount) * 100;
   const daysLeft = Math.ceil((new Date(project.deadline) - new Date()) / (1000 * 60 * 60 * 24));
 
   const handleDonateClick = () => {
-    if (!isSignedIn) {
-      window.location.href = '/sign-in';
+    if (!isAuthenticated) {
+      // Redirect to login page instead of Clerk sign-in
+      window.location.href = '/auth/signin';
       return;
     }
     setShowDonateModal(true);
   };
 
   const handleBeneficiaryClick = () => {
-    if (!isSignedIn) {
-      window.location.href = '/sign-in';
+    if (!isAuthenticated) {
+      window.location.href = '/auth/signin';
       return;
     }
     onBeneficiaryApply(project.id);
