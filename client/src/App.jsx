@@ -22,6 +22,7 @@ import ProjectsPage from './pages/public/ProjectsPage';
 import VolunteerPage from './pages/public/VolunteerPage';
 import BeneficiariesPage from './pages/public/BeneficiariesPage';
 import BeneficiaryApplicationPage from './pages/public/BeneficiaryApplicationPage';
+import Loader from './components/common/Loader';
 
 // Private pages (require authentication, any role)
 import DonationPage from './pages/private/DonationPage';
@@ -128,6 +129,7 @@ function App() {
                 <Route path="/projects" element={<ProjectsPage />} />
                 <Route path="/volunteer" element={<VolunteerPage />} />
                 <Route path="/beneficiaries" element={<BeneficiariesPage />} />
+                <Route path="/loader" element={<Loader />} />
                 <Route path="/projects/:projectId/apply-beneficiary" element={<BeneficiaryApplicationPage />} />
                 
                 {/* Private Routes - Require authentication (any role) */}

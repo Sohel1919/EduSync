@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
   ArrowLeftIcon,
@@ -15,17 +15,19 @@ import {
   HeartIcon,
   HomeIcon,
   BuildingStorefrontIcon,
-  CalendarIcon
+  CalendarIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
-import { useAuth } from '../../context/AuthContext'; 
-
+import { useAuth } from '../../context/AuthContext';
+import { projectsAPI, beneficiariesAPI } from '../../services/apiService';
 
 const BeneficiaryApplicationPage = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth(); 
+  const { user, isAuthenticated } = useAuth();
   const [project, setProject] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     personalInfo: {
@@ -88,17 +90,32 @@ const BeneficiaryApplicationPage = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/auth/signin'); 
+      navigate('/auth/signin');
       return;
     }
 
-    const foundProject = dummyProjects.find(p => p.id === parseInt(projectId));
-    if (!foundProject) {
-      navigate('/projects');
-      return;
-    }
-    setProject(foundProject);
+    const fetchProject = async () => {
+      setIsLoading(true);
+      try {
+        const response = await projectsAPI.getById(projectId);
+        const projectData = response.data;
+        
+        if (!projectData) {
+          navigate('/projects');
+          return;
+        }
+        setProject(projectData);
+      } catch (error) {
+        console.error('Error fetching project:', error);
+        navigate('/projects');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
+    fetchProject();
+
+    // Pre-fill user data
     if (user) {
       setFormData(prev => ({
         ...prev,
@@ -110,7 +127,7 @@ const BeneficiaryApplicationPage = () => {
         contactInfo: {
           ...prev.contactInfo,
           email: user.email || '',
-          phone: user.phone || ''
+          phone: user.phone || user.phoneNumber || ''
         }
       }));
     }
@@ -173,14 +190,13 @@ const BeneficiaryApplicationPage = () => {
       ...prev,
       documents: {
         ...prev.documents,
-        otherDocuments: [...prev.documents.otherDocuments, ...validFiles].slice(0, 5) // Limit to 5 files
+        otherDocuments: [...prev.documents.otherDocuments, ...validFiles].slice(0, 5)
       }
     }));
   };
 
   const removeFile = (documentType, index = null) => {
     if (index !== null) {
-      // Remove from otherDocuments array
       setFormData(prev => ({
         ...prev,
         documents: {
@@ -189,7 +205,6 @@ const BeneficiaryApplicationPage = () => {
         }
       }));
     } else {
-      // Remove single file
       setFormData(prev => ({
         ...prev,
         documents: {
@@ -255,7 +270,6 @@ const BeneficiaryApplicationPage = () => {
         }
         break;
       case 5:
-        // Fixed document validation - check if files actually exist
         const requiredDocuments = ['idProof', 'addressProof', 'incomeProof'];
         const missingDocuments = requiredDocuments.filter(docType => {
           const file = formData.documents[docType];
@@ -290,16 +304,63 @@ const BeneficiaryApplicationPage = () => {
     e.preventDefault();
     if (!validateStep(6)) return;
     
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      alert('Application submitted successfully! We will review your application and contact you within 5-7 working days.');
-      navigate('/projects');
+      // Prepare form data for submission
+      const submitData = new FormData();
+      
+      // Add project information
+      submitData.append('projectId', project?._id || projectId);
+      submitData.append('projectTitle', project?.title || '');
+      
+      // Add personal information
+      submitData.append('personalInfo', JSON.stringify(formData.personalInfo));
+      
+      // Add contact information
+      submitData.append('contactInfo', JSON.stringify(formData.contactInfo));
+      
+      // Add family background
+      submitData.append('familyBackground', JSON.stringify(formData.familyBackground));
+      
+      // Add application details
+      submitData.append('applicationDetails', JSON.stringify(formData.applicationDetails));
+      
+      // Add additional information
+      submitData.append('additionalInfo', JSON.stringify(formData.additionalInfo));
+      
+      // Add documents
+      if (formData.documents.idProof) {
+        submitData.append('idProof', formData.documents.idProof);
+      }
+      if (formData.documents.addressProof) {
+        submitData.append('addressProof', formData.documents.addressProof);
+      }
+      if (formData.documents.incomeProof) {
+        submitData.append('incomeProof', formData.documents.incomeProof);
+      }
+      if (formData.documents.medicalProof) {
+        submitData.append('medicalProof', formData.documents.medicalProof);
+      }
+      
+      // Add other documents
+      formData.documents.otherDocuments.forEach((file, index) => {
+        submitData.append(`otherDocuments`, file);
+      });
+
+      // Submit to backend API
+      const response = await beneficiariesAPI.create(submitData);
+      
+      if (response.data.success) {
+        alert('Application submitted successfully! We will review your application and contact you within 5-7 working days.');
+        navigate('/projects');
+      } else {
+        throw new Error(response.data.message || 'Failed to submit application');
+      }
     } catch (error) {
       console.error('Application error:', error);
-      alert('An error occurred. Please try again.');
+      alert(error.response?.data?.message || 'An error occurred. Please try again.');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -312,7 +373,7 @@ const BeneficiaryApplicationPage = () => {
     { number: 6, title: 'Review', icon: BanknotesIcon }
   ];
 
-  if (!project) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <div className="text-center">
@@ -322,6 +383,30 @@ const BeneficiaryApplicationPage = () => {
       </div>
     );
   }
+
+  if (!project) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <ExclamationTriangleIcon className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Project Not Found</h2>
+          <p className="text-gray-600 mb-4">The project you're trying to apply for doesn't exist.</p>
+          <Link
+            to="/projects"
+            className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-xl font-semibold hover:bg-primary-700 transition-colors"
+          >
+            <ArrowLeftIcon className="w-5 h-5 mr-2" />
+            Back to Projects
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Get project image safely
+  const projectImage = project.images && project.images.length > 0 
+    ? project.images[0] 
+    : 'https://images.unsplash.com/photo-1509099836639-18ba1795216d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
@@ -351,11 +436,17 @@ const BeneficiaryApplicationPage = () => {
                 </p>
                 <div className="flex items-center text-sm text-gray-500">
                   <UserGroupIcon className="w-4 h-4 mr-1" />
-                  <span>{project.beneficiaries} people already benefiting</span>
+                  <span>{project.beneficiaries || 0} people already benefiting</span>
                 </div>
+                {project.organization && (
+                  <div className="flex items-center text-sm text-gray-500 mt-1">
+                    <BuildingStorefrontIcon className="w-4 h-4 mr-1" />
+                    <span>by {project.organization}</span>
+                  </div>
+                )}
               </div>
               <img
-                src={project.images[0]}
+                src={projectImage}
                 alt={project.title}
                 className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover shadow-md"
                 onError={(e) => {
@@ -366,7 +457,7 @@ const BeneficiaryApplicationPage = () => {
           </div>
         </motion.div>
 
-        {/* Progress Steps - Fixed Layout */}
+        {/* Progress Steps */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -1268,12 +1359,12 @@ const BeneficiaryApplicationPage = () => {
               ) : (
                 <motion.button
                   type="submit"
-                  disabled={isLoading}
-                  whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                  disabled={isSubmitting}
+                  whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className="px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 disabled:opacity-50 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center"
                 >
-                  {isLoading ? (
+                  {isSubmitting ? (
                     <>
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                       Submitting...

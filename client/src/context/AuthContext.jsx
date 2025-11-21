@@ -85,6 +85,7 @@ export const AuthProvider = ({ children }) => {
         try {
           const response = await authAPI.getProfile();
           setUser(response.data.user);
+          console.log('User authenticated:', response.data.user);
         } catch (error) {
           console.error('Auth check failed:', error);
           localStorage.removeItem('token');
@@ -101,6 +102,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       setLoading(true);
+      console.log('Login attempt:', email);
       const response = await authAPI.login({ email, password });
       const { token: newToken, user: userData } = response.data;
       
@@ -108,10 +110,13 @@ export const AuthProvider = ({ children }) => {
       setToken(newToken);
       setUser(userData);
       
+      console.log('Login successful:', userData);
       toast.success('Login successful! Redirecting to profile...');
       return { success: true, user: userData };
     } catch (error) {
+      console.error('Login error:', error);
       const errorMessage = error.response?.data?.message || 'Login failed. Please check your credentials.';
+      toast.error(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -121,11 +126,21 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       setLoading(true);
+      console.log('Register attempt:', {
+        name: userData.get('name'),
+        email: userData.get('email'),
+        hasAvatar: userData.get('avatar') ? 'Yes' : 'No'
+      });
+      
       const response = await authAPI.register(userData);
+      
+      console.log('Registration successful:', response.data);
       toast.success('Registration successful! Please check your email for verification.');
       return { success: true, data: response.data };
     } catch (error) {
+      console.error('Register error:', error);
       const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
+      toast.error(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -142,10 +157,13 @@ export const AuthProvider = ({ children }) => {
       setToken(newToken);
       setUser(userData);
       
+      console.log('Email verification successful:', userData);
       toast.success('Email verified successfully!');
       return { success: true, user: userData };
     } catch (error) {
+      console.error('Email verification error:', error);
       const errorMessage = error.response?.data?.message || 'Verification failed. Please try again.';
+      toast.error(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -159,7 +177,9 @@ export const AuthProvider = ({ children }) => {
       toast.success('Verification email sent! Please check your inbox.');
       return { success: true };
     } catch (error) {
+      console.error('Resend verification error:', error);
       const errorMessage = error.response?.data?.message || 'Failed to resend verification email.';
+      toast.error(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -167,6 +187,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    console.log('Logging out user');
     localStorage.removeItem('token');
     setToken(null);
     setUser(null);
@@ -176,12 +197,21 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (profileData) => {
     try {
       setLoading(true);
+      console.log('Update profile attempt:', {
+        hasAvatar: profileData.get('avatar') ? 'Yes' : 'No',
+        name: profileData.get('name')
+      });
+      
       const response = await authAPI.updateProfile(profileData);
       setUser(response.data.user);
+      
+      console.log('Profile updated successfully:', response.data.user);
       toast.success('Profile updated successfully!');
       return { success: true, user: response.data.user };
     } catch (error) {
+      console.error('Update profile error:', error);
       const errorMessage = error.response?.data?.message || 'Profile update failed. Please try again.';
+      toast.error(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -195,7 +225,9 @@ export const AuthProvider = ({ children }) => {
       toast.success('Password changed successfully!');
       return { success: true };
     } catch (error) {
+      console.error('Change password error:', error);
       const errorMessage = error.response?.data?.message || 'Password change failed. Please try again.';
+      toast.error(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -212,7 +244,9 @@ export const AuthProvider = ({ children }) => {
       toast.success('Account deleted successfully');
       return { success: true };
     } catch (error) {
+      console.error('Delete account error:', error);
       const errorMessage = error.response?.data?.message || 'Failed to delete account. Please try again.';
+      toast.error(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -226,7 +260,9 @@ export const AuthProvider = ({ children }) => {
       toast.success('Password reset instructions sent to your email!');
       return { success: true };
     } catch (error) {
+      console.error('Forgot password error:', error);
       const errorMessage = error.response?.data?.message || 'Failed to send reset instructions. Please try again.';
+      toast.error(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -240,7 +276,9 @@ export const AuthProvider = ({ children }) => {
       toast.success('Password reset successfully! You can now login with your new password.');
       return { success: true };
     } catch (error) {
+      console.error('Reset password error:', error);
       const errorMessage = error.response?.data?.message || 'Password reset failed. Please try again.';
+      toast.error(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -251,11 +289,20 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.getProfile();
       setUser(response.data.user);
+      console.log('User data refreshed:', response.data.user);
       return { success: true, user: response.data.user };
     } catch (error) {
       console.error('Failed to refresh user data:', error);
       return { success: false, error: error.message };
     }
+  };
+
+  // Helper function to get user avatar URL with fallback
+  const getUserAvatar = () => {
+    if (user?.avatar?.url && user.avatar.url !== 'https://res.cloudinary.com/demo/image/upload/v1624391337/default-avatar.png') {
+      return user.avatar.url;
+    }
+    return null; // Return null to use default icon in UI
   };
 
   const value = {
@@ -273,12 +320,14 @@ export const AuthProvider = ({ children }) => {
     forgotPassword,
     resetPassword,
     refreshUser,
+    getUserAvatar,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
     isVolunteer: user?.role === 'volunteer',
     isDonor: user?.role === 'donor',
     isBeneficiary: user?.role === 'beneficiary',
-    isUser: user?.role === 'user'
+    isUser: user?.role === 'user',
+    hasAvatar: user?.avatar?.url && user.avatar.url !== 'https://res.cloudinary.com/demo/image/upload/v1624391337/default-avatar.png'
   };
 
   return (

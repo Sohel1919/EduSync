@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import ProjectCard from '../../components/projects/ProjectCard';
+import Loader from '../../components/common/Loader'; 
 import { 
   MagnifyingGlassIcon,
   FunnelIcon,
@@ -217,180 +218,163 @@ export default function ProjectsPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <motion.div 
-          className="text-center mb-12"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Our Projects</h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Discover meaningful causes and make a difference through your support. 
-            Every contribution helps us create lasting change.
-          </p>
-        </motion.div>
+        {/* Show Loader while data is being fetched */}
+        {loading ? (
+          <Loader 
+            type="page" 
+            message="Loading projects..." 
+            size="large"
+          />
+        ) : (
+          <>
+            {/* Header */}
+            <motion.div 
+              className="text-center mb-12"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">Our Projects</h1>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Discover meaningful causes and make a difference through your support. 
+                Every contribution helps us create lasting change.
+              </p>
+            </motion.div>
 
-        {/* Filters and Search */}
-        <motion.div 
-          className="bg-white rounded-2xl shadow-lg p-6 mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-            {/* Category Filter */}
-            <div className="flex flex-wrap gap-2">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    selectedCategory === category.id
-                      ? 'bg-primary-600 text-white shadow-lg'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {category.name}
-                </button>
-              ))}
-            </div>
-
-            {/* Search and View Controls */}
-            <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
-              {/* Search */}
-              <div className="relative w-full sm:w-64">
-                <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Search projects..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-600 focus:border-transparent outline-none transition-all"
-                />
-              </div>
-
-              {/* View Mode and Sort */}
-              <div className="flex items-center gap-3">
-                {/* View Mode */}
-                <div className="flex border border-gray-300 rounded-xl overflow-hidden">
-                  <button
-                    onClick={() => setViewMode('grid')}
-                    className={`p-2 transition-colors ${
-                      viewMode === 'grid' 
-                        ? 'bg-primary-600 text-white' 
-                        : 'bg-white text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    <Squares2X2Icon className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => setViewMode('list')}
-                    className={`p-2 transition-colors ${
-                      viewMode === 'list' 
-                        ? 'bg-primary-600 text-white' 
-                        : 'bg-white text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    <ListBulletIcon className="w-5 h-5" />
-                  </button>
+            {/* Filters and Search */}
+            <motion.div 
+              className="bg-white rounded-2xl shadow-lg p-6 mb-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+                {/* Category Filter */}
+                <div className="flex flex-wrap gap-2">
+                  {categories.map((category) => (
+                    <button
+                      key={category.id}
+                      onClick={() => setSelectedCategory(category.id)}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                        selectedCategory === category.id
+                          ? 'bg-primary-600 text-white shadow-lg'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {category.name}
+                    </button>
+                  ))}
                 </div>
 
-                {/* Sort */}
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-primary-600 focus:border-transparent outline-none text-sm"
-                >
-                  <option value="newest">Newest First</option>
-                  <option value="popular">Most Popular</option>
-                  <option value="urgent">Urgent Need</option>
-                  <option value="almost-funded">Almost Funded</option>
-                </select>
-              </div>
-            </div>
-          </div>
+                {/* Search and View Controls */}
+                <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+                  {/* Search */}
+                  <div className="relative w-full sm:w-64">
+                    <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Search projects..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-600 focus:border-transparent outline-none transition-all"
+                    />
+                  </div>
 
-          {/* Active Filters Info */}
-          {(selectedCategory !== 'all' || searchTerm) && (
-            <motion.div 
-              className="mt-4 flex items-center gap-2 text-sm text-gray-600"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <FunnelIcon className="w-4 h-4" />
-              <span>Active filters: </span>
-              {selectedCategory !== 'all' && (
-                <span className="bg-primary-100 text-primary-800 px-2 py-1 rounded-full text-xs">
-                  {categories.find(cat => cat.id === selectedCategory)?.name}
-                </span>
-              )}
-              {searchTerm && (
-                <span className="bg-secondary-100 text-secondary-800 px-2 py-1 rounded-full text-xs">
-                  Search: "{searchTerm}"
-                </span>
-              )}
-              <button 
-                onClick={() => {
-                  setSelectedCategory('all');
-                  setSearchTerm('');
-                }}
-                className="ml-2 text-primary-600 hover:text-primary-800 text-xs font-medium"
-              >
-                Clear all
-              </button>
-            </motion.div>
-          )}
-        </motion.div>
+                  {/* View Mode and Sort */}
+                  <div className="flex items-center gap-3">
+                    {/* View Mode */}
+                    <div className="flex border border-gray-300 rounded-xl overflow-hidden">
+                      <button
+                        onClick={() => setViewMode('grid')}
+                        className={`p-2 transition-colors ${
+                          viewMode === 'grid' 
+                            ? 'bg-primary-600 text-white' 
+                            : 'bg-white text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        <Squares2X2Icon className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => setViewMode('list')}
+                        className={`p-2 transition-colors ${
+                          viewMode === 'list' 
+                            ? 'bg-primary-600 text-white' 
+                            : 'bg-white text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        <ListBulletIcon className="w-5 h-5" />
+                      </button>
+                    </div>
 
-        {/* Projects Count and Pagination Info */}
-        {!loading && (
-          <motion.div 
-            className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <div className="text-gray-600">
-              Showing {Math.min(startIndex + 1, filteredProjects.length)}-
-              {Math.min(startIndex + ITEMS_PER_PAGE, filteredProjects.length)} of {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
-              {selectedCategory !== 'all' && (
-                <span> in <strong>{categories.find(cat => cat.id === selectedCategory)?.name}</strong></span>
-              )}
-            </div>
-            
-            {totalPages > 1 && (
-              <div className="text-sm text-gray-500">
-                Page {currentPage} of {totalPages}
-              </div>
-            )}
-          </motion.div>
-        )}
-
-        {/* Projects Grid */}
-        {loading ? (
-          <div className={`grid gap-8 ${
-            viewMode === 'grid' 
-              ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
-              : 'grid-cols-1'
-          }`}>
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl shadow-lg overflow-hidden animate-pulse">
-                <div className="h-48 bg-gray-200"></div>
-                <div className="p-6 space-y-4">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-4 bg-gray-200 rounded"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                  <div className="h-2 bg-gray-200 rounded-full"></div>
-                  <div className="flex gap-2">
-                    <div className="h-6 bg-gray-200 rounded w-16"></div>
-                    <div className="h-6 bg-gray-200 rounded w-20"></div>
+                    {/* Sort */}
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-primary-600 focus:border-transparent outline-none text-sm"
+                    >
+                      <option value="newest">Newest First</option>
+                      <option value="popular">Most Popular</option>
+                      <option value="urgent">Urgent Need</option>
+                      <option value="almost-funded">Almost Funded</option>
+                    </select>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <>
+
+              {/* Active Filters Info */}
+              {(selectedCategory !== 'all' || searchTerm) && (
+                <motion.div 
+                  className="mt-4 flex items-center gap-2 text-sm text-gray-600"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  <FunnelIcon className="w-4 h-4" />
+                  <span>Active filters: </span>
+                  {selectedCategory !== 'all' && (
+                    <span className="bg-primary-100 text-primary-800 px-2 py-1 rounded-full text-xs">
+                      {categories.find(cat => cat.id === selectedCategory)?.name}
+                    </span>
+                  )}
+                  {searchTerm && (
+                    <span className="bg-secondary-100 text-secondary-800 px-2 py-1 rounded-full text-xs">
+                      Search: "{searchTerm}"
+                    </span>
+                  )}
+                  <button 
+                    onClick={() => {
+                      setSelectedCategory('all');
+                      setSearchTerm('');
+                    }}
+                    className="ml-2 text-primary-600 hover:text-primary-800 text-xs font-medium"
+                  >
+                    Clear all
+                  </button>
+                </motion.div>
+              )}
+            </motion.div>
+
+            {/* Projects Count and Pagination Info */}
+            <motion.div 
+              className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <div className="text-gray-600">
+                Showing {Math.min(startIndex + 1, filteredProjects.length)}-
+                {Math.min(startIndex + ITEMS_PER_PAGE, filteredProjects.length)} of {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
+                {selectedCategory !== 'all' && (
+                  <span> in <strong>{categories.find(cat => cat.id === selectedCategory)?.name}</strong></span>
+                )}
+              </div>
+              
+              {totalPages > 1 && (
+                <div className="text-sm text-gray-500">
+                  Page {currentPage} of {totalPages}
+                </div>
+              )}
+            </motion.div>
+
+            {/* Projects Grid */}
             <motion.div 
               className={`grid gap-8 ${
                 viewMode === 'grid' 
@@ -412,36 +396,36 @@ export default function ProjectsPage() {
 
             {/* Pagination */}
             {renderPagination()}
-          </>
-        )}
 
-        {/* Empty State */}
-        {!loading && filteredProjects.length === 0 && (
-          <motion.div 
-            className="text-center py-16"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <div className="text-gray-300 text-8xl mb-6">🔍</div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">No projects found</h3>
-            <p className="text-gray-600 max-w-md mx-auto mb-6">
-              {searchTerm 
-                ? `No projects match your search for "${searchTerm}". Try different keywords or browse all categories.`
-                : `No projects available in this category at the moment. Check back soon for new initiatives.`
-              }
-            </p>
-            {(searchTerm || selectedCategory !== 'all') && (
-              <button
-                onClick={() => {
-                  setSelectedCategory('all');
-                  setSearchTerm('');
-                }}
-                className="bg-primary-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-primary-700 transition-colors"
+            {/* Empty State */}
+            {filteredProjects.length === 0 && (
+              <motion.div 
+                className="text-center py-16"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
               >
-                Browse All Projects
-              </button>
+                <div className="text-gray-300 text-8xl mb-6">🔍</div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">No projects found</h3>
+                <p className="text-gray-600 max-w-md mx-auto mb-6">
+                  {searchTerm 
+                    ? `No projects match your search for "${searchTerm}". Try different keywords or browse all categories.`
+                    : `No projects available in this category at the moment. Check back soon for new initiatives.`
+                  }
+                </p>
+                {(searchTerm || selectedCategory !== 'all') && (
+                  <button
+                    onClick={() => {
+                      setSelectedCategory('all');
+                      setSearchTerm('');
+                    }}
+                    className="bg-primary-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-primary-700 transition-colors"
+                  >
+                    Browse All Projects
+                  </button>
+                )}
+              </motion.div>
             )}
-          </motion.div>
+          </>
         )}
       </div>
     </div>

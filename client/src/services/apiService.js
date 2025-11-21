@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { axiosConfig } from '../utils/axiosConfig';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -17,17 +16,41 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Log request for debugging
+    console.log('API Request:', {
+      url: config.url,
+      method: config.method,
+      headers: config.headers,
+      data: config.data
+    });
+    
     return config;
   },
   (error) => {
+    console.error('API Request Error:', error);
     return Promise.reject(error);
   }
 );
 
-// Handle auth errors
+// Handle auth errors and responses
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API Response Success:', {
+      url: response.config.url,
+      status: response.status,
+      data: response.data
+    });
+    return response;
+  },
   (error) => {
+    console.error('API Response Error:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+    
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/auth/signin';
@@ -38,7 +61,14 @@ api.interceptors.response.use(
 
 export const authAPI = {
   // Authentication
-  register: (userData) => api.post('/auth/register', userData),
+  register: (userData) => {
+    console.log('Register API call:', userData);
+    return api.post('/auth/register', userData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+  },
   login: (credentials) => api.post('/auth/login', credentials),
   verifyEmail: (data) => api.post('/auth/verify-email', data),
   resendVerification: (data) => api.post('/auth/resend-verification', data),
@@ -47,7 +77,14 @@ export const authAPI = {
   
   // Profile Management
   getProfile: () => api.get('/auth/profile'),
-  updateProfile: (data) => api.put('/auth/profile', data),
+  updateProfile: (data) => {
+    console.log('Update Profile API call:', data);
+    return api.put('/auth/profile', data, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+  },
   changePassword: (data) => api.put('/auth/change-password', data),
   deleteAccount: () => api.delete('/auth/account'),
   

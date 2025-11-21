@@ -130,7 +130,7 @@ export default function Navbar() {
                 >
                   <button
                     onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                    className="flex items-center justify-center p-2 rounded-full bg-primary-500 hover:bg-primary-700 text-white transition-all duration-300"
+                    className="flex items-center justify-center p-1 rounded-full bg-primary-500 hover:bg-primary-700 text-white transition-all duration-300"
                   >
                     {user?.avatar?.url ? (
                       <img

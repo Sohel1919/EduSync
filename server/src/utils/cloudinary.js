@@ -9,7 +9,15 @@ cloudinary.config({
 
 export const uploadToCloudinary = (buffer, folder = 'avatars') => {
   return new Promise((resolve, reject) => {
+    console.log('Starting Cloudinary upload...', {
+      bufferType: typeof buffer,
+      isBuffer: Buffer.isBuffer(buffer),
+      bufferLength: buffer?.length,
+      folder
+    });
+
     if (!buffer || !Buffer.isBuffer(buffer) || buffer.length === 0) {
+      console.error('Invalid file buffer provided to Cloudinary');
       return reject(new Error('Invalid file buffer'));
     }
 
@@ -17,12 +25,11 @@ export const uploadToCloudinary = (buffer, folder = 'avatars') => {
       {
         folder,
         resource_type: 'image',
-        format: 'auto', 
-        quality: 'auto', 
-        fetch_format: 'auto', 
+        // REMOVED invalid format options
         transformation: [
           { width: 500, height: 500, crop: 'limit' }, 
-          { quality: 'auto:good' } 
+          { quality: 'auto' }, // Keep quality auto
+          { fetch_format: 'auto' } // Move fetch_format to transformation
         ]
       },
       (error, result) => {
@@ -30,6 +37,12 @@ export const uploadToCloudinary = (buffer, folder = 'avatars') => {
           console.error('Cloudinary upload error:', error);
           reject(error);
         } else {
+          console.log('Cloudinary upload successful:', {
+            public_id: result.public_id,
+            url: result.secure_url,
+            format: result.format,
+            bytes: result.bytes
+          });
           resolve(result);
         }
       }
@@ -53,7 +66,9 @@ export const uploadToCloudinary = (buffer, folder = 'avatars') => {
 
 export const deleteFromCloudinary = async (publicId) => {
   try {
+    console.log('Deleting from Cloudinary:', publicId);
     const result = await cloudinary.uploader.destroy(publicId);
+    console.log('Cloudinary deletion result:', result);
     return result;
   } catch (error) {
     console.error('Error deleting from Cloudinary:', error);
