@@ -1,161 +1,116 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  XMarkIcon, 
-  PhotoIcon, 
-  CloudArrowUpIcon,
-  TrashIcon,
-  CheckCircleIcon
+  XMarkIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CheckIcon
 } from '@heroicons/react/24/outline';
+import { FaImage, FaTag, FaCalendar, FaMapMarkerAlt, FaUsers, FaRupeeSign, FaBuilding, FaFileAlt } from 'react-icons/fa';
+import { projectsAPI } from '../../../services/apiService';
+import { showToast } from '../../../utils/toast';
 
 const categories = [
-  { id: 'education', name: 'Education', color: 'bg-blue-500' },
-  { id: 'healthcare', name: 'Healthcare', color: 'bg-green-500' },
-  { id: 'women-empowerment', name: 'Women Empowerment', color: 'bg-purple-500' },
-  { id: 'environment', name: 'Environment', color: 'bg-teal-500' },
-  { id: 'animal-welfare', name: 'Animal Welfare', color: 'bg-orange-500' }
+  { value: 'education', label: 'Education' },
+  { value: 'healthcare', label: 'Healthcare' },
+  { value: 'empowerment', label: 'Empowerment' },
+  { value: 'environment', label: 'Environment' },
+  { value: 'disaster-relief', label: 'Disaster Relief' },
+  { value: 'animal-welfare', label: 'Animal Welfare' },
+  { value: 'elderly-care', label: 'Elderly Care' },
+  { value: 'child-development', label: 'Child Development' }
 ];
 
-const statusOptions = [
-  { id: 'draft', name: 'Draft', color: 'bg-yellow-100 text-yellow-800' },
-  { id: 'active', name: 'Active', color: 'bg-green-100 text-green-800' },
-  { id: 'completed', name: 'Completed', color: 'bg-blue-100 text-blue-800' },
-  { id: 'cancelled', name: 'Cancelled', color: 'bg-red-100 text-red-800' }
+const initialFormData = {
+  title: '',
+  summary: '',
+  description: '',
+  category: 'education',
+  targetAmount: '',
+  collectedAmount: '',
+  deadline: '',
+  images: [],
+  tags: [],
+  beneficiaries: '',
+  organization: '',
+  location: '',
+  status: 'active'
+};
+
+const steps = [
+  { id: 1, title: 'Basic Info', icon: FaFileAlt },
+  { id: 2, title: 'Project Details', icon: FaRupeeSign },
+  { id: 3, title: 'Organization', icon: FaBuilding },
+  { id: 4, title: 'Media & Tags', icon: FaImage }
 ];
 
-export default function ProjectForm({ project, onSave, onClose }) {
-  const [formData, setFormData] = useState({
-    title: '',
-    summary: '',
-    description: '',
-    category: 'education',
-    targetAmount: '',
-    deadline: '',
-    images: [],
-    tags: [],
-    beneficiaries: '',
-    organization: '',
-    location: '',
-    status: 'draft'
-  });
-  
+export default function ProjectForm({ project, onSave, onClose, refreshProjects }) {
+  const [formData, setFormData] = useState(initialFormData);
+  const [currentStep, setCurrentStep] = useState(1);
   const [newTag, setNewTag] = useState('');
+  const [imagePreviews, setImagePreviews] = useState([]);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadingImages, setUploadingImages] = useState([]);
-  const [dragActive, setDragActive] = useState(false);
 
   useEffect(() => {
     if (project) {
       setFormData({
-        title: project.title || '',
-        summary: project.summary || '',
-        description: project.description || '',
-        category: project.category || 'education',
-        targetAmount: project.targetAmount || '',
-        deadline: project.deadline || '',
+        ...project,
+        targetAmount: project.targetAmount?.toString() || '',
+        collectedAmount: project.collectedAmount?.toString() || '',
+        beneficiaries: project.beneficiaries?.toString() || '',
         images: project.images || [],
-        tags: project.tags || [],
-        beneficiaries: project.beneficiaries || '',
-        organization: project.organization || '',
-        location: project.location || '',
-        status: project.status || 'draft'
+        tags: project.tags || []
       });
+      setImagePreviews(project.images || []);
     }
   }, [project]);
 
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!formData.title.trim()) newErrors.title = 'Project title is required';
-    if (!formData.summary.trim()) newErrors.summary = 'Short summary is required';
-    if (!formData.description.trim()) newErrors.description = 'Detailed description is required';
-    if (!formData.targetAmount || formData.targetAmount <= 0) newErrors.targetAmount = 'Valid target amount is required';
-    if (!formData.deadline) newErrors.deadline = 'Project deadline is required';
-    if (!formData.organization.trim()) newErrors.organization = 'Organization name is required';
-    if (!formData.location.trim()) newErrors.location = 'Project location is required';
-    if (!formData.beneficiaries || formData.beneficiaries <= 0) newErrors.beneficiaries = 'Valid beneficiaries count is required';
-    if (formData.images.length === 0) newErrors.images = 'At least one project image is required';
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) return;
-    
-    setIsSubmitting(true);
-    
-    try {
-      await onSave({
-        ...formData,
-        targetAmount: parseInt(formData.targetAmount),
-        beneficiaries: parseInt(formData.beneficiaries),
-        tags: formData.tags,
-        images: formData.images
-      });
-    } catch (error) {
-      console.error('Error saving project:', error);
-    } finally {
-      setIsSubmitting(false);
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
-  // Image Upload Handlers
-  const handleDrag = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length + imagePreviews.length > 5) {
+      showToast.error('Maximum 5 images allowed');
+      return;
     }
-  };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFiles(e.dataTransfer.files);
-    }
-  };
-
-  const handleFileSelect = (e) => {
-    if (e.target.files) {
-      handleFiles(e.target.files);
-    }
-  };
-
-  const handleFiles = (files) => {
-    const newImages = Array.from(files).slice(0, 5 - formData.images.length); // Max 5 images
-    
-    newImages.forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setFormData(prev => ({
-            ...prev,
-            images: [...prev.images, e.target.result]
-          }));
-        };
-        reader.readAsDataURL(file);
+    files.forEach(file => {
+      if (!file.type.startsWith('image/')) {
+        showToast.error('Please upload only image files');
+        return;
       }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreviews(prev => [...prev, e.target.result]);
+        setFormData(prev => ({
+          ...prev,
+          images: [...prev.images, e.target.result]
+        }));
+      };
+      reader.readAsDataURL(file);
     });
   };
 
   const removeImage = (index) => {
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
     setFormData(prev => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== index)
     }));
   };
 
-  // Tag Handlers
-  const handleAddTag = () => {
+  const addTag = () => {
     if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
       setFormData(prev => ({
         ...prev,
@@ -165,453 +120,658 @@ export default function ProjectForm({ project, onSave, onClose }) {
     }
   };
 
-  const handleRemoveTag = (tagToRemove) => {
+  const removeTag = (tagToRemove) => {
     setFormData(prev => ({
       ...prev,
       tags: prev.tags.filter(tag => tag !== tagToRemove)
     }));
   };
 
+  const validateCurrentStep = () => {
+    const newErrors = {};
+
+    if (currentStep === 1) {
+      if (!formData.title.trim()) newErrors.title = 'Project title is required';
+      if (!formData.summary.trim()) newErrors.summary = 'Short summary is required';
+      if (!formData.description.trim()) newErrors.description = 'Detailed description is required';
+    }
+
+    if (currentStep === 2) {
+      if (!formData.targetAmount || parseFloat(formData.targetAmount) <= 0) 
+        newErrors.targetAmount = 'Valid target amount is required';
+      if (!formData.deadline) newErrors.deadline = 'Project deadline is required';
+      if (!formData.beneficiaries || parseInt(formData.beneficiaries) <= 0)
+        newErrors.beneficiaries = 'Valid number of beneficiaries is required';
+      
+      if (formData.deadline) {
+        const deadlineDate = new Date(formData.deadline);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (deadlineDate <= today) {
+          newErrors.deadline = 'Deadline must be in the future';
+        }
+      }
+    }
+
+    if (currentStep === 3) {
+      if (!formData.organization.trim()) newErrors.organization = 'Organization name is required';
+      if (!formData.location.trim()) newErrors.location = 'Project location is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const nextStep = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    if (validateCurrentStep()) {
+      setCurrentStep(prev => Math.min(prev + 1, steps.length));
+    }
+  };
+
+  const prevStep = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setCurrentStep(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!validateCurrentStep()) return;
+
+    setIsSubmitting(true);
+
+    try {
+      // Prepare data for API - ensure proper data types
+      const submitData = {
+        title: formData.title.trim(),
+        summary: formData.summary.trim(),
+        description: formData.description.trim(),
+        category: formData.category,
+        targetAmount: parseFloat(formData.targetAmount),
+        collectedAmount: parseFloat(formData.collectedAmount || 0),
+        beneficiaries: parseInt(formData.beneficiaries),
+        deadline: new Date(formData.deadline).toISOString(),
+        images: formData.images,
+        tags: formData.tags,
+        organization: formData.organization.trim(),
+        location: formData.location.trim(),
+        status: formData.status
+      };
+
+      console.log('Submitting project data:', submitData);
+
+      let response;
+      if (project) {
+        response = await projectsAPI.update(project._id, submitData);
+        showToast.success('Project updated successfully!');
+      } else {
+        response = await projectsAPI.create(submitData);
+        showToast.success('Project created successfully!');
+      }
+
+      if (onSave) onSave(response.data);
+      if (refreshProjects) refreshProjects();
+      onClose();
+
+    } catch (error) {
+      console.error('Error saving project:', error);
+      
+      // Handle different error types
+      if (error.response?.status === 400) {
+        const serverError = error.response.data;
+        if (serverError.errors) {
+          // Handle validation errors from server
+          const fieldErrors = {};
+          serverError.errors.forEach(err => {
+            fieldErrors[err.path] = err.msg;
+          });
+          setErrors(fieldErrors);
+          showToast.error('Please check the form for errors');
+        } else {
+          showToast.error(serverError.message || 'Invalid data provided');
+        }
+      } else if (error.response?.status === 404) {
+        showToast.error('Server endpoint not found. Please check API configuration.');
+      } else if (error.code === 'NETWORK_ERROR') {
+        showToast.error('Network error. Please check your connection.');
+      } else {
+        showToast.error(error.response?.data?.message || 'Failed to save project');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      handleAddTag();
+      if (currentStep === 4) {
+        addTag();
+      }
+    }
+  };
+
+  // Fix: Prevent form submission on Enter key in step navigation
+  const handleFormKeyPress = (e) => {
+    if (e.key === 'Enter' && currentStep < steps.length) {
+      e.preventDefault();
+      nextStep();
     }
   };
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+        onClick={onClose}
+      >
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-primary-600 to-secondary-600 p-6">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">
+                {project ? 'Edit Project' : 'Create New Project'}
+              </h2>
+              <p className="text-gray-600 mt-1">
+                Step {currentStep} of {steps.length}: {steps.find(s => s.id === currentStep)?.title}
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 disabled:opacity-50"
+            >
+              <XMarkIcon className="h-6 w-6 text-gray-500" />
+            </button>
+          </div>
+
+          {/* Progress Steps */}
+          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
             <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-white">
-                  {project ? 'Edit Project' : 'Create New Project'}
-                </h2>
-                <p className="text-primary-100 mt-1">
-                  {project ? 'Update project details' : 'Add a new project to the platform'}
-                </p>
-              </div>
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-white hover:bg-opacity-20 rounded-xl transition-all duration-200"
-              >
-                <XMarkIcon className="h-6 w-6 text-white" />
-              </button>
+              {steps.map((step, index) => (
+                <div key={step.id} className="flex items-center">
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
+                    currentStep > step.id 
+                      ? 'bg-primary-600 border-primary-600 text-white'
+                      : currentStep === step.id
+                      ? 'border-primary-600 bg-white text-primary-600'
+                      : 'border-gray-300 bg-white text-gray-400'
+                  }`}>
+                    {currentStep > step.id ? (
+                      <CheckIcon className="h-4 w-4" />
+                    ) : (
+                      <step.icon className="h-4 w-4" />
+                    )}
+                  </div>
+                  <span className={`ml-2 text-sm font-medium ${
+                    currentStep >= step.id ? 'text-gray-900' : 'text-gray-500'
+                  }`}>
+                    {step.title}
+                  </span>
+                  {index < steps.length - 1 && (
+                    <div className={`w-12 h-0.5 mx-4 ${
+                      currentStep > step.id ? 'bg-primary-600' : 'bg-gray-300'
+                    }`} />
+                  )}
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Form Content */}
-          <div className="max-h-[calc(90vh-120px)] overflow-y-auto">
-            <form onSubmit={handleSubmit} className="p-6 space-y-8">
-              {/* Basic Information */}
-              <div className="space-y-6">
-                <div className="flex items-center space-x-3">
-                  <div className="w-1 h-8 bg-primary-600 rounded-full"></div>
-                  <h3 className="text-xl font-semibold text-gray-900">Basic Information</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="md:col-span-2">
-                    <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-2">
+          {/* Form */}
+          <form onSubmit={handleSubmit} onKeyPress={handleFormKeyPress} className="overflow-y-auto max-h-[calc(90vh-180px)]">
+            <div className="p-6">
+              {/* Step 1: Basic Information */}
+              {currentStep === 1 && (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="space-y-6"
+                >
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Project Title *
                     </label>
                     <input
                       type="text"
-                      id="title"
+                      name="title"
                       value={formData.title}
-                      onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                      className={`w-full px-4 py-3 rounded-xl border-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
-                        errors.title ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      placeholder="Enter a compelling project title"
+                      onChange={handleInputChange}
+                      disabled={isSubmitting}
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 ${
+                        errors.title ? 'border-red-500' : 'border-gray-300'
+                      } ${isSubmitting ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                      placeholder="Enter project title"
                     />
                     {errors.title && (
-                      <p className="mt-2 text-sm text-red-600 flex items-center">
-                        <XMarkIcon className="h-4 w-4 mr-1" />
-                        {errors.title}
-                      </p>
+                      <p className="mt-1 text-sm text-red-600">{errors.title}</p>
                     )}
                   </div>
 
-                  <div className="md:col-span-2">
-                    <label htmlFor="summary" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Short Summary *
                     </label>
                     <textarea
-                      id="summary"
-                      rows={3}
+                      name="summary"
                       value={formData.summary}
-                      onChange={(e) => setFormData(prev => ({ ...prev, summary: e.target.value }))}
-                      className={`w-full px-4 py-3 rounded-xl border-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
-                        errors.summary ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      placeholder="Brief description that captures the essence of your project"
+                      onChange={handleInputChange}
+                      disabled={isSubmitting}
+                      rows={3}
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 ${
+                        errors.summary ? 'border-red-500' : 'border-gray-300'
+                      } ${isSubmitting ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                      placeholder="Brief description of the project"
                     />
                     {errors.summary && (
-                      <p className="mt-2 text-sm text-red-600 flex items-center">
-                        <XMarkIcon className="h-4 w-4 mr-1" />
-                        {errors.summary}
-                      </p>
+                      <p className="mt-1 text-sm text-red-600">{errors.summary}</p>
                     )}
                   </div>
 
-                  <div className="md:col-span-2">
-                    <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Detailed Description *
                     </label>
                     <textarea
-                      id="description"
-                      rows={5}
+                      name="description"
                       value={formData.description}
-                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                      className={`w-full px-4 py-3 rounded-xl border-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
-                        errors.description ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      placeholder="Provide comprehensive details about the project goals, impact, and implementation plan"
+                      onChange={handleInputChange}
+                      disabled={isSubmitting}
+                      rows={5}
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 ${
+                        errors.description ? 'border-red-500' : 'border-gray-300'
+                      } ${isSubmitting ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                      placeholder="Comprehensive project description"
                     />
                     {errors.description && (
-                      <p className="mt-2 text-sm text-red-600 flex items-center">
-                        <XMarkIcon className="h-4 w-4 mr-1" />
-                        {errors.description}
-                      </p>
+                      <p className="mt-1 text-sm text-red-600">{errors.description}</p>
                     )}
                   </div>
-                </div>
-              </div>
+                </motion.div>
+              )}
 
-              {/* Project Details */}
-              <div className="space-y-6">
-                <div className="flex items-center space-x-3">
-                  <div className="w-1 h-8 bg-secondary-600 rounded-full"></div>
-                  <h3 className="text-xl font-semibold text-gray-900">Project Details</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Category *
-                    </label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {categories.map((category) => (
-                        <button
-                          key={category.id}
-                          type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, category: category.id }))}
-                          className={`p-3 rounded-xl border-2 transition-all duration-200 text-left ${
-                            formData.category === category.id
-                              ? 'border-primary-500 bg-primary-50 text-primary-700'
-                              : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                          }`}
-                        >
-                          <div className="flex items-center space-x-2">
-                            <div className={`w-3 h-3 rounded-full ${category.color}`}></div>
-                            <span className="font-medium">{category.name}</span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="status" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Status *
-                    </label>
-                    <select
-                      id="status"
-                      value={formData.status}
-                      onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 hover:border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                    >
-                      {statusOptions.map((status) => (
-                        <option key={status.id} value={status.id}>
-                          {status.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label htmlFor="targetAmount" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Target Amount (₹) *
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500">₹</span>
-                      <input
-                        type="number"
-                        id="targetAmount"
-                        value={formData.targetAmount}
-                        onChange={(e) => setFormData(prev => ({ ...prev, targetAmount: e.target.value }))}
-                        className={`w-full pl-10 pr-4 py-3 rounded-xl border-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
-                          errors.targetAmount ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        placeholder="500000"
-                        min="0"
-                      />
-                    </div>
-                    {errors.targetAmount && (
-                      <p className="mt-2 text-sm text-red-600 flex items-center">
-                        <XMarkIcon className="h-4 w-4 mr-1" />
-                        {errors.targetAmount}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label htmlFor="deadline" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Deadline *
-                    </label>
-                    <input
-                      type="date"
-                      id="deadline"
-                      value={formData.deadline}
-                      onChange={(e) => setFormData(prev => ({ ...prev, deadline: e.target.value }))}
-                      className={`w-full px-4 py-3 rounded-xl border-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
-                        errors.deadline ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    />
-                    {errors.deadline && (
-                      <p className="mt-2 text-sm text-red-600 flex items-center">
-                        <XMarkIcon className="h-4 w-4 mr-1" />
-                        {errors.deadline}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label htmlFor="organization" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Organization Name *
-                    </label>
-                    <input
-                      type="text"
-                      id="organization"
-                      value={formData.organization}
-                      onChange={(e) => setFormData(prev => ({ ...prev, organization: e.target.value }))}
-                      className={`w-full px-4 py-3 rounded-xl border-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
-                        errors.organization ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      placeholder="Your organization name"
-                    />
-                    {errors.organization && (
-                      <p className="mt-2 text-sm text-red-600 flex items-center">
-                        <XMarkIcon className="h-4 w-4 mr-1" />
-                        {errors.organization}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label htmlFor="location" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Location *
-                    </label>
-                    <input
-                      type="text"
-                      id="location"
-                      value={formData.location}
-                      onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                      className={`w-full px-4 py-3 rounded-xl border-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
-                        errors.location ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      placeholder="City, State"
-                    />
-                    {errors.location && (
-                      <p className="mt-2 text-sm text-red-600 flex items-center">
-                        <XMarkIcon className="h-4 w-4 mr-1" />
-                        {errors.location}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label htmlFor="beneficiaries" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Expected Beneficiaries *
-                    </label>
-                    <input
-                      type="number"
-                      id="beneficiaries"
-                      value={formData.beneficiaries}
-                      onChange={(e) => setFormData(prev => ({ ...prev, beneficiaries: e.target.value }))}
-                      className={`w-full px-4 py-3 rounded-xl border-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ${
-                        errors.beneficiaries ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      placeholder="250"
-                      min="0"
-                    />
-                    {errors.beneficiaries && (
-                      <p className="mt-2 text-sm text-red-600 flex items-center">
-                        <XMarkIcon className="h-4 w-4 mr-1" />
-                        {errors.beneficiaries}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Images Section */}
-              <div className="space-y-6">
-                <div className="flex items-center space-x-3">
-                  <div className="w-1 h-8 bg-green-500 rounded-full"></div>
-                  <h3 className="text-xl font-semibold text-gray-900">Project Images</h3>
-                </div>
-
-                <div
-                  className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200 ${
-                    dragActive 
-                      ? 'border-primary-500 bg-primary-25' 
-                      : errors.images 
-                        ? 'border-red-500 bg-red-25' 
-                        : 'border-gray-300 hover:border-gray-400'
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
+              {/* Step 2: Project Details */}
+              {currentStep === 2 && (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="space-y-6"
                 >
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleFileSelect}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
-                  
-                  <CloudArrowUpIcon className={`mx-auto h-12 w-12 mb-4 ${
-                    dragActive ? 'text-primary-500' : 'text-gray-400'
-                  }`} />
-                  
-                  <div className="space-y-2">
-                    <p className="text-lg font-semibold text-gray-700">
-                      {dragActive ? 'Drop images here' : 'Upload project images'}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Drag & drop images or click to browse. Max 5 images.
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      Recommended: 1200×800px or larger
-                    </p>
-                  </div>
-                </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Category
+                      </label>
+                      <select
+                        name="category"
+                        value={formData.category}
+                        onChange={handleInputChange}
+                        disabled={isSubmitting}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                      >
+                        {categories.map(category => (
+                          <option key={category.value} value={category.value}>
+                            {category.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
-                {errors.images && (
-                  <p className="text-sm text-red-600 flex items-center">
-                    <XMarkIcon className="h-4 w-4 mr-1" />
-                    {errors.images}
-                  </p>
-                )}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Status
+                      </label>
+                      <select
+                        name="status"
+                        value={formData.status}
+                        onChange={handleInputChange}
+                        disabled={isSubmitting}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                      >
+                        <option value="active">Active</option>
+                        <option value="paused">Paused</option>
+                        <option value="completed">Completed</option>
+                        <option value="draft">Draft</option>
+                      </select>
+                    </div>
 
-                {/* Image Previews */}
-                {formData.images.length > 0 && (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {formData.images.map((image, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={image}
-                          alt={`Project preview ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-xl shadow-md"
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Target Amount (₹) *
+                      </label>
+                      <div className="relative">
+                        <FaRupeeSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="number"
+                          name="targetAmount"
+                          value={formData.targetAmount}
+                          onChange={handleInputChange}
+                          disabled={isSubmitting}
+                          className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 ${
+                            errors.targetAmount ? 'border-red-500' : 'border-gray-300'
+                          } ${isSubmitting ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                          placeholder="50000"
+                          min="1"
                         />
+                      </div>
+                      {errors.targetAmount && (
+                        <p className="mt-1 text-sm text-red-600">{errors.targetAmount}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Collected Amount (₹)
+                      </label>
+                      <div className="relative">
+                        <FaRupeeSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="number"
+                          name="collectedAmount"
+                          value={formData.collectedAmount}
+                          onChange={handleInputChange}
+                          disabled={isSubmitting}
+                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                          placeholder="0"
+                          min="0"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Deadline *
+                      </label>
+                      <div className="relative">
+                        <FaCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="date"
+                          name="deadline"
+                          value={formData.deadline}
+                          onChange={handleInputChange}
+                          disabled={isSubmitting}
+                          className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 ${
+                            errors.deadline ? 'border-red-500' : 'border-gray-300'
+                          } ${isSubmitting ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                          min={new Date().toISOString().split('T')[0]}
+                        />
+                      </div>
+                      {errors.deadline && (
+                        <p className="mt-1 text-sm text-red-600">{errors.deadline}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Beneficiaries *
+                      </label>
+                      <div className="relative">
+                        <FaUsers className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="number"
+                          name="beneficiaries"
+                          value={formData.beneficiaries}
+                          onChange={handleInputChange}
+                          disabled={isSubmitting}
+                          className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 ${
+                            errors.beneficiaries ? 'border-red-500' : 'border-gray-300'
+                          } ${isSubmitting ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                          placeholder="250"
+                          min="1"
+                        />
+                      </div>
+                      {errors.beneficiaries && (
+                        <p className="mt-1 text-sm text-red-600">{errors.beneficiaries}</p>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Step 3: Organization */}
+              {currentStep === 3 && (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="space-y-6"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Organization Name *
+                      </label>
+                      <div className="relative">
+                        <FaBuilding className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="text"
+                          name="organization"
+                          value={formData.organization}
+                          onChange={handleInputChange}
+                          disabled={isSubmitting}
+                          className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 ${
+                            errors.organization ? 'border-red-500' : 'border-gray-300'
+                          } ${isSubmitting ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                          placeholder="Enter organization name"
+                        />
+                      </div>
+                      {errors.organization && (
+                        <p className="mt-1 text-sm text-red-600">{errors.organization}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Location *
+                      </label>
+                      <div className="relative">
+                        <FaMapMarkerAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="text"
+                          name="location"
+                          value={formData.location}
+                          onChange={handleInputChange}
+                          disabled={isSubmitting}
+                          className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 ${
+                            errors.location ? 'border-red-500' : 'border-gray-300'
+                          } ${isSubmitting ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                          placeholder="Enter project location"
+                        />
+                      </div>
+                      {errors.location && (
+                        <p className="mt-1 text-sm text-red-600">{errors.location}</p>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Step 4: Media & Tags */}
+              {currentStep === 4 && (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="space-y-6"
+                >
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Project Images
+                    </label>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6">
+                        <label className="flex flex-col items-center justify-center cursor-pointer">
+                          <FaImage className="h-8 w-8 text-gray-400 mb-2" />
+                          <p className="text-sm text-gray-600">
+                            <span className="font-semibold">Click to upload</span> or drag and drop
+                          </p>
+                          <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5 images</p>
+                          <input
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            disabled={isSubmitting}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+
+                      {imagePreviews.length > 0 && (
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                          {imagePreviews.map((preview, index) => (
+                            <div key={index} className="relative">
+                              <img
+                                src={preview}
+                                alt={`Preview ${index + 1}`}
+                                className="w-full h-20 object-cover rounded-lg"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeImage(index)}
+                                disabled={isSubmitting}
+                                className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full text-xs"
+                              >
+                                <XMarkIcon className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Project Tags
+                    </label>
+                    <div className="space-y-3">
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                          <div className="relative">
+                            <FaTag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                            <input
+                              type="text"
+                              value={newTag}
+                              onChange={(e) => setNewTag(e.target.value)}
+                              onKeyPress={handleKeyPress}
+                              disabled={isSubmitting}
+                              placeholder="Add a tag"
+                              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                            />
+                          </div>
+                        </div>
                         <button
                           type="button"
-                          onClick={() => removeImage(index)}
-                          className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                          onClick={addTag}
+                          disabled={isSubmitting}
+                          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
                         >
-                          <TrashIcon className="h-4 w-4" />
+                          Add
                         </button>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
 
-              {/* Tags Section */}
-              <div className="space-y-6">
-                <div className="flex items-center space-x-3">
-                  <div className="w-1 h-8 bg-purple-500 rounded-full"></div>
-                  <h3 className="text-xl font-semibold text-gray-900">Project Tags</h3>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex gap-3">
-                    <input
-                      type="text"
-                      value={newTag}
-                      onChange={(e) => setNewTag(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 hover:border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                      placeholder="Add relevant tags (education, rural, healthcare...)"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleAddTag}
-                      className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200 font-medium"
-                    >
-                      Add
-                    </button>
-                  </div>
-
-                  {formData.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {formData.tags.map((tag, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex items-center px-3 py-2 rounded-lg bg-primary-100 text-primary-700 text-sm font-medium"
-                        >
-                          {tag}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveTag(tag)}
-                            className="ml-2 hover:text-primary-900 transition-colors"
-                          >
-                            <XMarkIcon className="h-4 w-4" />
-                          </button>
-                        </span>
-                      ))}
+                      {formData.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {formData.tags.map((tag, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
+                            >
+                              {tag}
+                              <button
+                                type="button"
+                                onClick={() => removeTag(tag)}
+                                disabled={isSubmitting}
+                                className="ml-2 text-gray-500 hover:text-gray-700"
+                              >
+                                <XMarkIcon className="h-3 w-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
 
-              {/* Form Actions */}
-              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-                <motion.button
+            {/* Footer */}
+            <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
+              <button
+                type="button"
+                onClick={prevStep}
+                disabled={currentStep === 1 || isSubmitting}
+                className="flex items-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
+              >
+                <ChevronLeftIcon className="h-4 w-4 mr-2" />
+                Previous
+              </button>
+
+              <div className="flex space-x-3">
+                <button
                   type="button"
                   onClick={onClose}
-                  className="px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 font-semibold"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  disabled={isSubmitting}
+                  className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
                 >
                   Cancel
-                </motion.button>
-                <motion.button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-8 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-xl hover:from-primary-700 hover:to-secondary-700 disabled:opacity-50 transition-all duration-200 font-semibold shadow-lg"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Saving...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center space-x-2">
-                      <CheckCircleIcon className="h-5 w-5" />
-                      <span>{project ? 'Update Project' : 'Create Project'}</span>
-                    </div>
-                  )}
-                </motion.button>
+                </button>
+
+                {currentStep < steps.length ? (
+                  <button
+                    type="button"
+                    onClick={nextStep}
+                    disabled={isSubmitting}
+                    className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  >
+                    Next
+                    <ChevronRightIcon className="h-4 w-4 ml-2" />
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {project ? 'Updating...' : 'Creating...'}
+                      </>
+                    ) : (
+                      <>
+                        <CheckIcon className="h-4 w-4 mr-2" />
+                        {project ? 'Update Project' : 'Create Project'}
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
-            </form>
-          </div>
+            </div>
+          </form>
         </motion.div>
-      </div>
+      </motion.div>
     </AnimatePresence>
   );
 }

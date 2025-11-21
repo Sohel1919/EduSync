@@ -1,23 +1,25 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import ProjectCard, { dummyProjects } from '../../components/projects/ProjectCard';
+import ProjectCard from '../../components/projects/ProjectCard';
 import { 
   MagnifyingGlassIcon,
   FunnelIcon,
   Squares2X2Icon,
   ListBulletIcon,
-  ChevronLeftIcon,
+  ChevronLeftIcon, 
   ChevronRightIcon
 } from '@heroicons/react/24/outline';
+import { projectsAPI } from '../../services/apiService';
 
 const categories = [
   { id: 'all', name: 'All Projects' },
   { id: 'education', name: 'Education' },
   { id: 'healthcare', name: 'Healthcare' },
-  { id: 'women-empowerment', name: 'Women Empowerment' },
+  { id: 'empowerment', name: 'Empowerment' },
   { id: 'environment', name: 'Environment' },
-  { id: 'animal-welfare', name: 'Animal Welfare' }
+  { id: 'animal-welfare', name: 'Animal Welfare' },
+  { id: 'disaster-relief', name: 'Disaster Relief' }
 ];
 
 const ITEMS_PER_PAGE = 12;
@@ -39,74 +41,94 @@ export default function ProjectsPage() {
   const currentProjects = filteredProjects.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   useEffect(() => {
-    const fetchProjects = () => {
+    const fetchProjects = async () => {
       setLoading(true);
-      
-      setTimeout(() => {
-        let filtered = [...dummyProjects];
+      try {
+        const response = await projectsAPI.getAll();
         
-        // Filter by category
-        if (selectedCategory !== 'all') {
-          filtered = filtered.filter(
-            project => project.category === selectedCategory
-          );
+        // Handle different response structures
+        let projectsData = [];
+        if (Array.isArray(response.data)) {
+          projectsData = response.data;
+        } else if (response.data && Array.isArray(response.data.data)) {
+          projectsData = response.data.data;
+        } else if (response.data && Array.isArray(response.data.projects)) {
+          projectsData = response.data.projects;
+        } else {
+          projectsData = [];
         }
         
-        // Filter by search term
-        if (searchTerm) {
-          const term = searchTerm.toLowerCase();
-          filtered = filtered.filter(
-            project => 
-              project.title.toLowerCase().includes(term) ||
-              project.summary.toLowerCase().includes(term) ||
-              project.tags.some(tag => tag.toLowerCase().includes(term))
-          );
-        }
-        
-        // Sort projects
-        switch (sortBy) {
-          case 'popular':
-            filtered.sort((a, b) => b.collectedAmount - a.collectedAmount);
-            break;
-          case 'urgent':
-            filtered.sort((a, b) => {
-              const daysLeftA = Math.ceil((new Date(a.deadline) - new Date()) / (1000 * 60 * 60 * 24));
-              const daysLeftB = Math.ceil((new Date(b.deadline) - new Date()) / (1000 * 60 * 60 * 24));
-              return daysLeftA - daysLeftB;
-            });
-            break;
-          case 'almost-funded':
-            filtered.sort((a, b) => {
-              const progressA = (a.collectedAmount / a.targetAmount) * 100;
-              const progressB = (b.collectedAmount / b.targetAmount) * 100;
-              return progressB - progressA;
-            });
-            break;
-          case 'newest':
-          default:
-            filtered.sort((a, b) => b.id - a.id);
-            break;
-        }
-        
-        setFilteredProjects(filtered);
-        setProjects(filtered);
+        setProjects(projectsData);
+        setFilteredProjects(projectsData);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+        setProjects([]);
+        setFilteredProjects([]);
+      } finally {
         setLoading(false);
-      }, 800);
+      }
     };
 
     fetchProjects();
-  }, [selectedCategory, searchTerm, sortBy]);
+  }, []);
+
+  // Filter and sort projects whenever filters change
+  useEffect(() => {
+    let filtered = [...projects];
+    
+    // Filter by category
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(
+        project => project.category === selectedCategory
+      );
+    }
+    
+    // Filter by search term
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        project => 
+          project.title?.toLowerCase().includes(term) ||
+          project.summary?.toLowerCase().includes(term) ||
+          project.organization?.toLowerCase().includes(term) ||
+          project.tags?.some(tag => tag.toLowerCase().includes(term))
+      );
+    }
+    
+    // Sort projects
+    switch (sortBy) {
+      case 'popular':
+        filtered.sort((a, b) => (b.collectedAmount || 0) - (a.collectedAmount || 0));
+        break;
+      case 'urgent':
+        filtered.sort((a, b) => {
+          const daysLeftA = a.deadline ? Math.ceil((new Date(a.deadline) - new Date()) / (1000 * 60 * 60 * 24)) : Infinity;
+          const daysLeftB = b.deadline ? Math.ceil((new Date(b.deadline) - new Date()) / (1000 * 60 * 60 * 24)) : Infinity;
+          return daysLeftA - daysLeftB;
+        });
+        break;
+      case 'almost-funded':
+        filtered.sort((a, b) => {
+          const progressA = ((a.collectedAmount || 0) / (a.targetAmount || 1)) * 100;
+          const progressB = ((b.collectedAmount || 0) / (b.targetAmount || 1)) * 100;
+          return progressB - progressA;
+        });
+        break;
+      case 'newest':
+      default:
+        filtered.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        break;
+    }
+    
+    setFilteredProjects(filtered);
+    setCurrentPage(1);
+  }, [projects, selectedCategory, searchTerm, sortBy]);
 
   // Reset search and pagination when category changes
   useEffect(() => {
     setSearchTerm('');
     setCurrentPage(1);
   }, [selectedCategory]);
-
-  // Reset to first page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, sortBy]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -381,7 +403,7 @@ export default function ProjectsPage() {
             >
               {currentProjects.map((project, index) => (
                 <ProjectCard 
-                  key={project.id} 
+                  key={project._id || project.id} 
                   project={project}
                   onBeneficiaryApply={handleBeneficiaryApply}
                 />

@@ -18,7 +18,7 @@ import {
   CalendarIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../context/AuthContext'; 
-import { dummyProjects } from '../../components/projects/ProjectCard';
+
 
 const BeneficiaryApplicationPage = () => {
   const { projectId } = useParams();

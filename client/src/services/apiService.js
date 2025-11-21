@@ -61,6 +61,8 @@ export const projectsAPI = {
   create: (data) => api.post('/projects', data),
   update: (id, data) => api.put(`/projects/${id}`, data),
   delete: (id) => api.delete(`/projects/${id}`),
+  getAdminProjects: (params = {}) => api.get('/projects/admin/all-projects', { params }),
+  getCompleteStats: (params = {}) => api.get('/projects/admin/complete-stats', { params }),
 };
 
 export const beneficiariesAPI = {

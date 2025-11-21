@@ -29,8 +29,6 @@ import DonationPage from './pages/private/DonationPage';
 // Admin pages (matching your layout tabs)
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProjects from './pages/admin/AdminProjects';
-import AddProject from './pages/admin/AddProject';
-import EditProject from './pages/admin/EditProject';
 import AdminVolunteers from './pages/admin/AdminVolunteers';
 import AdminDonations from './pages/admin/AdminDonations';
 import AdminProjectDonations from './pages/admin/AdminProjectDonations';
@@ -155,8 +153,6 @@ function App() {
                 >
                   <Route path="dashboard" element={<AdminDashboard />} />
                   <Route path="projects" element={<AdminProjects />} />
-                  <Route path="projects/add" element={<AddProject />} />
-                  <Route path="projects/edit/:id" element={<EditProject />} />
                   <Route path="volunteers" element={<AdminVolunteers />} />
                   <Route path="donations" element={<AdminDonations />} />
                   <Route path="project-donations" element={<AdminProjectDonations />} />

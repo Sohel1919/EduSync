@@ -9,6 +9,7 @@ dotenv.config();
 
 // Import routes
 import authRoutes from './routes/authRoutes.js';
+import projectRoutes from './routes/project.routes.js';
 
 const app = express();
 
@@ -19,12 +20,12 @@ app.use(cors({
   credentials: true
 }));
 app.use(morgan('combined'));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
 // Routes
 app.use('/api/auth', authRoutes);
-
+app.use('/api/projects', projectRoutes);
 // Health check route
 app.get('/api/health', (req, res) => {
   res.json({

@@ -9,7 +9,6 @@ cloudinary.config({
 
 export const uploadToCloudinary = (buffer, folder = 'avatars') => {
   return new Promise((resolve, reject) => {
-    // Check if buffer is valid
     if (!buffer || !Buffer.isBuffer(buffer) || buffer.length === 0) {
       return reject(new Error('Invalid file buffer'));
     }
@@ -36,13 +35,11 @@ export const uploadToCloudinary = (buffer, folder = 'avatars') => {
       }
     );
 
-    // Handle stream errors
     uploadStream.on('error', (error) => {
       console.error('Upload stream error:', error);
       reject(error);
     });
 
-    // Create read stream and pipe to upload stream
     const readStream = streamifier.createReadStream(buffer);
     
     readStream.on('error', (error) => {
@@ -64,4 +61,6 @@ export const deleteFromCloudinary = async (publicId) => {
   }
 };
 
+// Export cloudinary instance directly
+export { cloudinary };
 export default cloudinary;
