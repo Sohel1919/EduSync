@@ -302,7 +302,7 @@ export const AuthProvider = ({ children }) => {
     if (user?.avatar?.url && user.avatar.url !== 'https://res.cloudinary.com/demo/image/upload/v1624391337/default-avatar.png') {
       return user.avatar.url;
     }
-    return null; // Return null to use default icon in UI
+    return null; 
   };
 
   const value = {

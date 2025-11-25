@@ -102,6 +102,42 @@ export const projectsAPI = {
   getCompleteStats: (params = {}) => api.get('/projects/admin/complete-stats', { params }),
 };
 
+// Updated Volunteers API to match backend routes
+export const volunteersAPI = {
+  // Get all volunteers (protected route)
+  getAll: (params = {}) => api.get('/volunteers', { params }),
+  
+  // Get volunteer by ID (protected route)
+  getById: (id) => api.get(`/volunteers/${id}`),
+  
+  // Create new volunteer (public route)
+  create: (formData) => {
+    return api.post('/volunteers', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  
+  // Update volunteer (protected route - admin only)
+  update: (id, formData) => {
+    return api.put(`/volunteers/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  
+  // Delete volunteer (protected route - admin only)
+  delete: (id) => api.delete(`/volunteers/${id}`),
+  
+  // Update volunteer status (protected route - admin only)
+  updateStatus: (id, status) => api.patch(`/volunteers/${id}/status`, { status }),
+  
+  // Admin specific endpoints
+  getAdminVolunteers: (params = {}) => api.get('/volunteers', { params }),
+};
+
 export const beneficiariesAPI = {
   getAll: () => api.get('/beneficiaries'),
   getById: (id) => api.get(`/beneficiaries/${id}`),

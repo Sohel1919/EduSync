@@ -7,7 +7,7 @@ import { RoleProvider } from "./context/RoleContext";
 import './index.css';
 
 // Layouts
-import AdminLayout from './layouts/AdminLayout';
+import DashboardLayout from './layouts/DashboardLayout';
 
 // Public pages (no authentication required)
 import HomePage from './pages/public/HomePage';
@@ -27,7 +27,7 @@ import Loader from './components/common/Loader';
 // Private pages (require authentication, any role)
 import DonationPage from './pages/private/DonationPage';
 
-// Admin pages (matching your layout tabs)
+// Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProjects from './pages/admin/AdminProjects';
 import AdminVolunteers from './pages/admin/AdminVolunteers';
@@ -37,7 +37,7 @@ import AdminSettings from './pages/admin/AdminSettings';
 
 // Volunteer pages
 import VolunteerDashboardPage from './pages/volunteer/VolunteerDashboardPage';
-import Tasks from './pages/volunteer/Tasks';
+import Projects from './pages/volunteer/Projects';
 import Profile from './pages/volunteer/Profile';
 import Attendance from './pages/volunteer/Attendance';
 
@@ -59,6 +59,22 @@ import RoleBasedRoute from './routes/RoleBasedRoute';
 import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
 
+// Icons for navigation
+import { 
+  HomeIcon,
+  FolderIcon,
+  UserGroupIcon,
+  CurrencyDollarIcon,
+  ChartBarIcon,
+  Cog6ToothIcon,
+  CheckCircleIcon,
+  CalendarIcon,
+  TrophyIcon,
+  HeartIcon,
+  DocumentTextIcon,
+  BookOpenIcon
+} from '@heroicons/react/24/outline';
+
 // Simple 404 page
 const NotFoundPage = () => (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
@@ -77,10 +93,19 @@ const NotFoundPage = () => (
   </div>
 );
 
-// Component to conditionally render footer
+// Component to conditionally render navbar and footer
 const Layout = ({ children }) => {
   const location = useLocation();
   
+  // List of routes where navbar should be hidden
+  const hideNavbarRoutes = [
+    '/auth/signin',
+    '/auth/signup',
+    '/forgot-password',
+    '/reset-password',
+    '/verify-email',
+  ];
+
   // List of routes where footer should be hidden
   const hideFooterRoutes = [
     '/auth/signin',
@@ -94,13 +119,17 @@ const Layout = ({ children }) => {
     '/user'
   ];
 
+  const shouldShowNavbar = !hideNavbarRoutes.some(route => 
+    location.pathname.startsWith(route)
+  );
+
   const shouldShowFooter = !hideFooterRoutes.some(route => 
     location.pathname.startsWith(route)
   );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
-      <Navbar />
+      {shouldShowNavbar && <Navbar />}
       <main className="flex-grow">
         {children}
       </main>
@@ -108,6 +137,44 @@ const Layout = ({ children }) => {
     </div>
   );
 };
+
+// Navigation configurations for different roles
+const adminNavigation = [
+  { name: 'Dashboard', href: '/admin/dashboard', icon: HomeIcon },
+  { name: 'Projects', href: '/admin/projects', icon: FolderIcon },
+  { name: 'Volunteers', href: '/admin/volunteers', icon: UserGroupIcon },
+  { name: 'Donations', href: '/admin/donations', icon: CurrencyDollarIcon },
+  { name: 'Project Donations', href: '/admin/project-donations', icon: ChartBarIcon },
+  { name: 'Settings', href: '/admin/settings', icon: Cog6ToothIcon },
+];
+
+const volunteerNavigation = [
+  { name: 'Dashboard', href: '/volunteer/dashboard', icon: HomeIcon },
+  { name: 'Projects', href: '/volunteer/projects', icon: CheckCircleIcon },
+  { name: 'Attendance', href: '/volunteer/attendance', icon: CalendarIcon },
+  { name: 'Profile', href: '/volunteer/profile', icon: UserGroupIcon },
+];
+
+const donorNavigation = [
+  { name: 'Dashboard', href: '/donor/dashboard', icon: HomeIcon },
+  { name: 'Donate', href: '/donor/donate', icon: CurrencyDollarIcon },
+  { name: 'History', href: '/donor/history', icon: ChartBarIcon },
+  { name: 'Profile', href: '/donor/profile', icon: UserGroupIcon },
+];
+
+const userNavigation = [
+  { name: 'Dashboard', href: '/user/dashboard', icon: HomeIcon },
+  { name: 'Projects', href: '/user/projects', icon: FolderIcon },
+  { name: 'Events', href: '/user/events', icon: CalendarIcon },
+  { name: 'Profile', href: '/user/profile', icon: UserGroupIcon },
+];
+
+const beneficiaryNavigation = [
+  { name: 'Dashboard', href: '/user/dashboard', icon: HomeIcon },
+  { name: 'Projects', href: '/user/projects', icon: FolderIcon },
+  { name: 'Events', href: '/user/events', icon: CalendarIcon },
+  { name: 'Profile', href: '/user/profile', icon: UserGroupIcon },
+];
 
 function App() {
   return (
@@ -142,13 +209,25 @@ function App() {
                   } 
                 />
                 
-                {/* Admin Routes with Layout */}
+                {/* Admin Routes with DashboardLayout */}
                 <Route 
                   path="/admin/*" 
                   element={
                     <ProtectedRoute>
                       <RoleBasedRoute allowedRoles={['admin']}>
-                        <AdminLayout />
+                        <DashboardLayout 
+                          userRole="admin"
+                          userName="Admin User"
+                          userEmail="admin@caresync.org"
+                          navigationItems={adminNavigation}
+                          dashboardTitle="Admin Dashboard"
+                          stats={[
+                            { label: 'Total Users', value: '1,234' },
+                            { label: 'Active Projects', value: '45' },
+                            { label: 'This Month', value: '$12.5K' }
+                          ]}
+                          logoHref="/admin/dashboard"
+                        />
                       </RoleBasedRoute>
                     </ProtectedRoute>
                   } 
@@ -161,131 +240,92 @@ function App() {
                   <Route path="settings" element={<AdminSettings />} />
                 </Route>
                 
-                {/* Volunteer Routes */}
+                {/* Volunteer Routes with DashboardLayout */}
                 <Route 
-                  path="/volunteer/dashboard" 
+                  path="/volunteer/*" 
                   element={
                     <ProtectedRoute>
                       <RoleBasedRoute allowedRoles={['volunteer', 'admin']}>
-                        <VolunteerDashboardPage />
+                        <DashboardLayout 
+                          userRole="volunteer"
+                          userName="Volunteer User"
+                          userEmail="volunteer@caresync.org"
+                          navigationItems={volunteerNavigation}
+                          dashboardTitle="Volunteer Dashboard"
+                          stats={[
+                            { label: 'Hours This Week', value: '12.5h' },
+                            { label: 'Completed Tasks', value: '8' },
+                            { label: 'Active Projects', value: '3' }
+                          ]}
+                          logoHref="/volunteer/dashboard"
+                        />
                       </RoleBasedRoute>
                     </ProtectedRoute>
                   } 
-                />
-                <Route 
-                  path="/volunteer/tasks" 
-                  element={
-                    <ProtectedRoute>
-                      <RoleBasedRoute allowedRoles={['volunteer', 'admin']}>
-                        <Tasks />
-                      </RoleBasedRoute>
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/volunteer/profile" 
-                  element={
-                    <ProtectedRoute>
-                      <RoleBasedRoute allowedRoles={['volunteer', 'admin']}>
-                        <Profile />
-                      </RoleBasedRoute>
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/volunteer/attendance" 
-                  element={
-                    <ProtectedRoute>
-                      <RoleBasedRoute allowedRoles={['volunteer', 'admin']}>
-                        <Attendance />
-                      </RoleBasedRoute>
-                    </ProtectedRoute>
-                  } 
-                />
+                >
+                  <Route path="dashboard" element={<VolunteerDashboardPage />} />
+                  <Route path="projects" element={<Projects />} />
+                  <Route path="attendance" element={<Attendance />} />
+                  <Route path="profile" element={<Profile />} />
+                </Route>
                 
-                {/* Donor Routes */}
+                {/* Donor Routes with DashboardLayout */}
                 <Route 
-                  path="/donor/dashboard" 
+                  path="/donor/*" 
                   element={
                     <ProtectedRoute>
                       <RoleBasedRoute allowedRoles={['donor', 'admin']}>
-                        <DonorDashboard />
+                        <DashboardLayout 
+                          userRole="donor"
+                          userName="Donor User"
+                          userEmail="donor@caresync.org"
+                          navigationItems={donorNavigation}
+                          dashboardTitle="Donor Dashboard"
+                          stats={[
+                            { label: 'Total Donated', value: '$2,540' },
+                            { label: 'Projects Supported', value: '7' },
+                            { label: 'This Year', value: '$1,200' }
+                          ]}
+                          logoHref="/donor/dashboard"
+                        />
                       </RoleBasedRoute>
                     </ProtectedRoute>
                   } 
-                />
-                <Route 
-                  path="/donor/donate" 
-                  element={
-                    <ProtectedRoute>
-                      <RoleBasedRoute allowedRoles={['donor', 'admin']}>
-                        <Donate />
-                      </RoleBasedRoute>
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/donor/history" 
-                  element={
-                    <ProtectedRoute>
-                      <RoleBasedRoute allowedRoles={['donor', 'admin']}>
-                        <History />
-                      </RoleBasedRoute>
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/donor/profile" 
-                  element={
-                    <ProtectedRoute>
-                      <RoleBasedRoute allowedRoles={['donor', 'admin']}>
-                        <DonorProfile />
-                      </RoleBasedRoute>
-                    </ProtectedRoute>
-                  } 
-                />
+                >
+                  <Route path="dashboard" element={<DonorDashboard />} />
+                  <Route path="donate" element={<Donate />} />
+                  <Route path="history" element={<History />} />
+                  <Route path="profile" element={<DonorProfile />} />
+                </Route>
                 
-                {/* User Routes */}
+                {/* User/Beneficiary Routes with DashboardLayout */}
                 <Route 
-                  path="/user/dashboard" 
+                  path="/user/*" 
                   element={
                     <ProtectedRoute>
                       <RoleBasedRoute allowedRoles={['user', 'beneficiary', 'admin']}>
-                        <UserDashboard />
+                        <DashboardLayout 
+                          userRole="user"
+                          userName="User"
+                          userEmail="user@caresync.org"
+                          navigationItems={userNavigation}
+                          dashboardTitle="User Dashboard"
+                          stats={[
+                            { label: 'Active Applications', value: '2' },
+                            { label: 'Approved Projects', value: '1' },
+                            { label: 'Support Received', value: '3' }
+                          ]}
+                          logoHref="/user/dashboard"
+                        />
                       </RoleBasedRoute>
                     </ProtectedRoute>
                   } 
-                />
-                <Route 
-                  path="/user/projects" 
-                  element={
-                    <ProtectedRoute>
-                      <RoleBasedRoute allowedRoles={['user', 'beneficiary', 'admin']}>
-                        <UserProjects />
-                      </RoleBasedRoute>
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/user/events" 
-                  element={
-                    <ProtectedRoute>
-                      <RoleBasedRoute allowedRoles={['user', 'beneficiary', 'admin']}>
-                        <UserEvents />
-                      </RoleBasedRoute>
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/user/profile" 
-                  element={
-                    <ProtectedRoute>
-                      <RoleBasedRoute allowedRoles={['user', 'beneficiary', 'admin']}>
-                        <UserProfile />
-                      </RoleBasedRoute>
-                    </ProtectedRoute>
-                  } 
-                />
+                >
+                  <Route path="dashboard" element={<UserDashboard />} />
+                  <Route path="projects" element={<UserProjects />} />
+                  <Route path="events" element={<UserEvents />} />
+                  <Route path="profile" element={<UserProfile />} />
+                </Route>
                 
                 {/* 404 Catch All */}
                 <Route path="*" element={<NotFoundPage />} />
