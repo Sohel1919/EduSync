@@ -12,29 +12,29 @@ export default function VolunteerStatsCards({ projects }) {
       name: 'Total Projects', 
       value: projects.length, 
       color: 'bg-blue-500',
-      description: 'All assigned projects',
+      description: 'All your projects',
       icon: UsersIcon
     },
     { 
       name: 'Pending', 
-      value: projects.filter(p => p.volunteerStatus === 'pending').length, 
+      value: projects.filter(p => p.isApproved === 'pending').length, 
       color: 'bg-yellow-500',
       description: 'Awaiting approval',
       icon: ClockIcon
     },
     { 
-      name: 'Active', 
-      value: projects.filter(p => p.volunteerStatus === 'approved').length, 
+      name: 'Approved', 
+      value: projects.filter(p => p.isApproved === 'approved').length, 
       color: 'bg-green-500',
-      description: 'Currently active',
+      description: 'Active projects',
       icon: CheckCircleIcon
     },
     { 
-      name: 'Completed', 
-      value: projects.filter(p => p.volunteerStatus === 'completed').length, 
-      color: 'bg-purple-500',
-      description: 'Successfully completed',
-      icon: CheckCircleIcon
+      name: 'Rejected', 
+      value: projects.filter(p => p.isApproved === 'rejected').length, 
+      color: 'bg-red-500',
+      description: 'Projects not approved',
+      icon: XCircleIcon
     },
   ];
 

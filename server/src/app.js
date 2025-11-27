@@ -11,6 +11,9 @@ dotenv.config();
 import authRoutes from './routes/authRoutes.js';
 import projectRoutes from './routes/project.routes.js';
 import volunteerRoutes from './routes/volunteer.routes.js';
+import beneficiaryApplicationRoutes from './routes/beneficiaryApplication.routes.js';
+import notificationRoutes from './routes/notification.routes.js';
+import projectRequestRoutes from './routes/projectRequest.routes.js';
 
 const app = express();
 
@@ -28,7 +31,9 @@ app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/volunteers', volunteerRoutes);
-
+app.use('/api/beneficiaries', beneficiaryApplicationRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/project-requests', projectRequestRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

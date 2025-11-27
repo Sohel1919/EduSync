@@ -1,19 +1,18 @@
 import { motion } from 'framer-motion';
 import { 
   EyeIcon,
-  MapPinIcon
+  MapPinIcon,
+  PencilIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline';
-import { 
-  FaCheckCircle,
-  FaTimesCircle
-} from 'react-icons/fa';
 import { UsersIcon } from '@heroicons/react/24/outline';
 
 export default function VolunteerProjectTableRow({
   project,
   index,
   onViewProject,
-  onStatusUpdate,
+  onEditProject,
+  onDeleteProject,
   statusColors,
   priorityColors,
   getStatusIcon,
@@ -30,7 +29,15 @@ export default function VolunteerProjectTableRow({
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex items-center">
           <div className="flex-shrink-0 h-10 w-10 bg-primary-100 rounded-lg flex items-center justify-center">
-            <UsersIcon className="h-6 w-6 text-primary-600" />
+            {project.projectImage?.url ? (
+              <img 
+                src={project.projectImage.url} 
+                alt={project.title}
+                className="h-10 w-10 rounded-lg object-cover"
+              />
+            ) : (
+              <UsersIcon className="h-6 w-6 text-primary-600" />
+            )}
           </div>
           <div className="ml-4">
             <div className="text-sm font-medium text-gray-900">
@@ -55,7 +62,9 @@ export default function VolunteerProjectTableRow({
         <div className="text-sm text-gray-900">
           {formatDate(project.deadline)}
         </div>
-        <div className="text-xs text-gray-500">
+        <div className={`text-xs ${
+          getDaysRemaining(project.deadline) < 7 ? 'text-red-500' : 'text-gray-500'
+        }`}>
           {getDaysRemaining(project.deadline)} days remaining
         </div>
       </td>
@@ -76,40 +85,27 @@ export default function VolunteerProjectTableRow({
         <div className="flex items-center space-x-2">
           <button
             onClick={() => onViewProject(project)}
-            className="text-primary-600 hover:text-primary-900 transition-colors duration-200"
+            className="text-primary-600 hover:text-primary-900 transition-colors duration-200 p-1 rounded"
             title="View Details"
           >
             <EyeIcon className="h-5 w-5" />
           </button>
           
-          {project.volunteerStatus === 'pending' && (
-            <>
-              <button
-                onClick={() => onStatusUpdate(project._id || project.id, 'approved')}
-                className="text-green-600 hover:text-green-900 transition-colors duration-200"
-                title="Approve Project"
-              >
-                <FaCheckCircle className="h-5 w-5" />
-              </button>
-              <button
-                onClick={() => onStatusUpdate(project._id || project.id, 'rejected')}
-                className="text-red-600 hover:text-red-900 transition-colors duration-200"
-                title="Reject Project"
-              >
-                <FaTimesCircle className="h-5 w-5" />
-              </button>
-            </>
-          )}
+          <button
+            onClick={() => onEditProject(project)}
+            className="text-blue-600 hover:text-blue-900 transition-colors duration-200 p-1 rounded"
+            title="Edit Project"
+          >
+            <PencilIcon className="h-5 w-5" />
+          </button>
           
-          {project.volunteerStatus === 'approved' && (
-            <button
-              onClick={() => onStatusUpdate(project._id || project.id, 'completed')}
-              className="text-blue-600 hover:text-blue-900 transition-colors duration-200"
-              title="Mark as Completed"
-            >
-              <FaCheckCircle className="h-5 w-5" />
-            </button>
-          )}
+          <button
+            onClick={() => onDeleteProject(project._id || project.id)}
+            className="text-red-600 hover:text-red-900 transition-colors duration-200 p-1 rounded"
+            title="Delete Project"
+          >
+            <TrashIcon className="h-5 w-5" />
+          </button>
         </div>
       </td>
     </motion.tr>

@@ -6,31 +6,33 @@ import {
   MapPinIcon,
   UsersIcon,
   CurrencyDollarIcon,
-  BuildingOfficeIcon
+  BuildingOfficeIcon,
+  DocumentTextIcon
 } from '@heroicons/react/24/outline';
+import { FaFolder } from 'react-icons/fa';
 
 export default function ProjectDetailsModal({ project, onClose, onEdit }) {
   const progress = Math.round((project.collectedAmount / project.targetAmount) * 100);
   
   const getCategoryColor = (category) => {
     const colors = {
-      education: 'bg-blue-100 text-blue-800',
-      healthcare: 'bg-green-100 text-green-800',
-      empowerment: 'bg-purple-100 text-purple-800',
-      environment: 'bg-emerald-100 text-emerald-800',
-      'disaster-relief': 'bg-red-100 text-red-800'
+      education: 'bg-blue-100 text-blue-800 border-blue-200',
+      healthcare: 'bg-green-100 text-green-800 border-green-200',
+      empowerment: 'bg-purple-100 text-purple-800 border-purple-200',
+      environment: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+      'disaster-relief': 'bg-red-100 text-red-800 border-red-200'
     };
-    return colors[category] || 'bg-gray-100 text-gray-800';
+    return colors[category] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
   const getStatusColor = (status) => {
     const colors = {
-      active: 'bg-green-100 text-green-800',
-      completed: 'bg-blue-100 text-blue-800',
-      draft: 'bg-yellow-100 text-yellow-800',
-      paused: 'bg-red-100 text-red-800'
+      active: 'bg-green-100 text-green-800 border-green-200',
+      completed: 'bg-blue-100 text-blue-800 border-blue-200',
+      draft: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      paused: 'bg-red-100 text-red-800 border-red-200'
     };
-    return colors[status] || 'bg-gray-100 text-gray-800';
+    return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
   return (
@@ -50,22 +52,31 @@ export default function ProjectDetailsModal({ project, onClose, onEdit }) {
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-900">Project Details</h2>
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-primary-100/50">
             <div className="flex items-center space-x-3">
-              <button
+              <div className="p-2 bg-primary-100 rounded-lg">
+                <FaFolder className="h-6 w-6 text-primary-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Project Details</h2>
+            </div>
+            <div className="flex items-center space-x-3">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={onEdit}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 shadow-lg"
               >
                 <PencilSquareIcon className="h-4 w-4 mr-2" />
-                Edit
-              </button>
-              <button
+                Edit Project
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                className="p-2 hover:bg-white rounded-lg transition-all duration-200"
               >
                 <XMarkIcon className="h-6 w-6 text-gray-500" />
-              </button>
+              </motion.button>
             </div>
           </div>
 
@@ -73,12 +84,13 @@ export default function ProjectDetailsModal({ project, onClose, onEdit }) {
           <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
             {/* Hero Image */}
             {project.images && project.images.length > 0 && (
-              <div className="h-64 bg-gray-200 overflow-hidden">
+              <div className="h-64 bg-gradient-to-r from-primary-500 to-secondary-500 overflow-hidden relative">
                 <img
                   src={project.images[0]}
                   alt={project.title}
                   className="w-full h-full object-cover"
                 />
+                <div className="absolute inset-0 bg-black bg-opacity-20"></div>
               </div>
             )}
 
@@ -88,26 +100,26 @@ export default function ProjectDetailsModal({ project, onClose, onEdit }) {
                 <div className="flex items-center justify-between mb-4">
                   <h1 className="text-3xl font-bold text-gray-900">{project.title}</h1>
                   <div className="flex items-center space-x-3">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(project.category)}`}>
-                      {project.category}
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getCategoryColor(project.category)}`}>
+                      {project.category?.split('-')?.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') || project.category}
                     </span>
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(project.status)}`}>
-                      {project.status}
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(project.status)}`}>
+                      {project.status?.charAt(0).toUpperCase() + project.status?.slice(1)}
                     </span>
                   </div>
                 </div>
-                <p className="text-lg text-gray-600">{project.summary}</p>
+                <p className="text-lg text-gray-600 leading-relaxed">{project.summary}</p>
               </div>
 
               {/* Progress */}
-              <div className="bg-gray-50 rounded-lg p-6">
+              <div className="bg-gradient-to-r from-primary-50 to-primary-100/50 rounded-xl p-6 border border-primary-200">
                 <div className="flex justify-between items-center mb-4">
                   <div>
                     <div className="text-3xl font-bold text-gray-900">
-                      ${(project.collectedAmount / 1000).toFixed(0)}K
+                      ₹{(project.collectedAmount / 1000).toFixed(0)}K
                     </div>
                     <div className="text-gray-600">
-                      raised of ${(project.targetAmount / 1000).toFixed(0)}K goal
+                      raised of ₹{(project.targetAmount / 1000).toFixed(0)}K goal
                     </div>
                   </div>
                   <div className="text-right">
@@ -117,7 +129,7 @@ export default function ProjectDetailsModal({ project, onClose, onEdit }) {
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div 
-                    className="bg-gradient-to-r from-primary-500 to-secondary-600 h-3 rounded-full transition-all duration-500"
+                    className="bg-gradient-to-r from-primary-600 to-secondary-600 h-3 rounded-full transition-all duration-500"
                     style={{ width: `${progress}%` }}
                   ></div>
                 </div>
@@ -126,56 +138,71 @@ export default function ProjectDetailsModal({ project, onClose, onEdit }) {
               {/* Project Details Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <div className="flex items-center text-gray-600">
-                    <BuildingOfficeIcon className="h-5 w-5 mr-3" />
-                    <span className="font-medium">Organization:</span>
-                    <span className="ml-2">{project.organization}</span>
+                  <div className="flex items-center text-gray-600 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <BuildingOfficeIcon className="h-5 w-5 mr-3 text-primary-500" />
+                    <div>
+                      <span className="font-semibold text-gray-900">Organization:</span>
+                      <span className="ml-2">{project.organization}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center text-gray-600">
-                    <MapPinIcon className="h-5 w-5 mr-3" />
-                    <span className="font-medium">Location:</span>
-                    <span className="ml-2">{project.location}</span>
+                  <div className="flex items-center text-gray-600 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <MapPinIcon className="h-5 w-5 mr-3 text-primary-500" />
+                    <div>
+                      <span className="font-semibold text-gray-900">Location:</span>
+                      <span className="ml-2">{project.location}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center text-gray-600">
-                    <UsersIcon className="h-5 w-5 mr-3" />
-                    <span className="font-medium">Beneficiaries:</span>
-                    <span className="ml-2">{project.beneficiaries}</span>
+                  <div className="flex items-center text-gray-600 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <UsersIcon className="h-5 w-5 mr-3 text-primary-500" />
+                    <div>
+                      <span className="font-semibold text-gray-900">Beneficiaries:</span>
+                      <span className="ml-2">{project.beneficiaries}</span>
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <div className="flex items-center text-gray-600">
-                    <CalendarIcon className="h-5 w-5 mr-3" />
-                    <span className="font-medium">Created:</span>
-                    <span className="ml-2">{new Date(project.createdAt).toLocaleDateString()}</span>
+                  <div className="flex items-center text-gray-600 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <CalendarIcon className="h-5 w-5 mr-3 text-primary-500" />
+                    <div>
+                      <span className="font-semibold text-gray-900">Created:</span>
+                      <span className="ml-2">{new Date(project.createdAt).toLocaleDateString()}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center text-gray-600">
-                    <CalendarIcon className="h-5 w-5 mr-3" />
-                    <span className="font-medium">Deadline:</span>
-                    <span className="ml-2">{new Date(project.deadline).toLocaleDateString()}</span>
+                  <div className="flex items-center text-gray-600 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <CalendarIcon className="h-5 w-5 mr-3 text-primary-500" />
+                    <div>
+                      <span className="font-semibold text-gray-900">Deadline:</span>
+                      <span className="ml-2">{new Date(project.deadline).toLocaleDateString()}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center text-gray-600">
-                    <CurrencyDollarIcon className="h-5 w-5 mr-3" />
-                    <span className="font-medium">Remaining:</span>
-                    <span className="ml-2">${((project.targetAmount - project.collectedAmount) / 1000).toFixed(0)}K</span>
+                  <div className="flex items-center text-gray-600 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <CurrencyDollarIcon className="h-5 w-5 mr-3 text-primary-500" />
+                    <div>
+                      <span className="font-semibold text-gray-900">Remaining:</span>
+                      <span className="ml-2">₹{((project.targetAmount - project.collectedAmount) / 1000).toFixed(0)}K</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Description */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Project Description</h3>
+              <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                  <DocumentTextIcon className="h-5 w-5 mr-2 text-primary-500" />
+                  Project Description
+                </h3>
                 <p className="text-gray-600 leading-relaxed">{project.description}</p>
               </div>
 
               {/* Tags */}
               {project.tags && project.tags.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Tags</h3>
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Tags</h3>
                   <div className="flex flex-wrap gap-2">
                     {project.tags.map((tag, index) => (
                       <span
                         key={index}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700"
+                        className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-700 border border-primary-200"
                       >
                         {tag}
                       </span>
@@ -186,15 +213,15 @@ export default function ProjectDetailsModal({ project, onClose, onEdit }) {
 
               {/* Additional Images */}
               {project.images && project.images.length > 1 && (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Project Images</h3>
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Project Images</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {project.images.slice(1).map((image, index) => (
                       <img
                         key={index}
                         src={image}
                         alt={`${project.title} ${index + 2}`}
-                        className="w-full h-32 object-cover rounded-lg shadow-sm"
+                        className="w-full h-32 object-cover rounded-lg shadow-sm border border-gray-200"
                       />
                     ))}
                   </div>
@@ -203,11 +230,11 @@ export default function ProjectDetailsModal({ project, onClose, onEdit }) {
 
               {/* Project Updates */}
               {project.updates && project.updates.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Project Updates</h3>
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Project Updates</h3>
                   <div className="space-y-4">
                     {project.updates.map((update, index) => (
-                      <div key={index} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+                      <div key={index} className="flex items-start space-x-4 p-4 bg-white rounded-lg border border-gray-200">
                         <div className="flex-shrink-0 w-3 h-3 bg-primary-500 rounded-full mt-2"></div>
                         <div>
                           <p className="text-gray-900">{update.text}</p>

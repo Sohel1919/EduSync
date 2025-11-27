@@ -13,10 +13,16 @@ export const initializeSocket = (server) => {
   io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
 
-    // Join user to their room for personalized notifications
+    // Join user to their personal room for notifications
     socket.on('join-user-room', (userId) => {
       socket.join(`user_${userId}`);
       console.log(`User ${userId} joined room: user_${userId}`);
+    });
+
+    // Join admin room for admin notifications
+    socket.on('join-admin-room', () => {
+      socket.join('admin_room');
+      console.log(`User ${socket.id} joined admin room`);
     });
 
     socket.on('disconnect', () => {
@@ -34,12 +40,17 @@ export const getIO = () => {
   return io;
 };
 
-// Helper function to emit notifications
-export const emitNotification = (userId, event, data) => {
-  if (!io) return;
+export const emitNotification = (userId, notification) => {
+  const io = getIO();
+  io.to(`user_${userId}`).emit('new-notification', notification);
+};
 
-  io.to(`user_${userId}`).emit(event, {
-    ...data,
-    timestamp: new Date().toISOString()
-  });
+export const emitNotificationToAll = (notification) => {
+  const io = getIO();
+  io.emit('new-notification', notification);
+};
+
+export const emitNotificationToAdmins = (notification) => {
+  const io = getIO();
+  io.to('admin_room').emit('new-notification', notification);
 };

@@ -1,6 +1,6 @@
-import { UsersIcon, MapPinIcon, CalendarIcon } from '@heroicons/react/24/outline';
+import { UsersIcon, MapPinIcon, CalendarIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 
-export default function VolunteerProjectDetailsModal({ project, onClose, onStatusUpdate }) {
+export default function VolunteerProjectDetailsModal({ project, onClose, onEdit, onDelete }) {
   const progress = Math.round(((project.collectedAmount || 0) / (project.targetAmount || 1)) * 100);
   
   const getDaysRemaining = (deadline) => {
@@ -8,7 +8,13 @@ export default function VolunteerProjectDetailsModal({ project, onClose, onStatu
     const deadlineDate = new Date(deadline);
     const diffTime = deadlineDate - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+    return diffDays > 0 ? diffDays : 0;
+  };
+
+  const handleDelete = () => {
+    if (window.confirm('Are you sure you want to delete this project?')) {
+      onDelete();
+    }
   };
 
   return (
@@ -32,6 +38,16 @@ export default function VolunteerProjectDetailsModal({ project, onClose, onStatu
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column - Basic Info */}
             <div className="lg:col-span-2 space-y-6">
+              {project.projectImage?.url && (
+                <div className="rounded-lg overflow-hidden">
+                  <img 
+                    src={project.projectImage.url} 
+                    alt={project.title}
+                    className="w-full h-48 object-cover"
+                  />
+                </div>
+              )}
+              
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{project.title}</h3>
                 <p className="text-gray-600">{project.summary}</p>
@@ -80,7 +96,7 @@ export default function VolunteerProjectDetailsModal({ project, onClose, onStatu
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Category:</span>
-                    <span className="text-sm font-medium capitalize">{project.category}</span>
+                    <span className="text-sm font-medium capitalize">{project.category?.replace('-', ' ')}</span>
                   </div>
                 </div>
               </div>
@@ -111,41 +127,46 @@ export default function VolunteerProjectDetailsModal({ project, onClose, onStatu
                 </div>
               </div>
 
-              {/* Status Actions */}
-              {project.volunteerStatus === 'pending' && (
+              {/* Status */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 mb-3">Status</h4>
                 <div className="space-y-3">
-                  <button
-                    onClick={() => {
-                      onStatusUpdate(project._id || project.id, 'approved');
-                      onClose();
-                    }}
-                    className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors duration-200"
-                  >
-                    Approve Project
-                  </button>
-                  <button
-                    onClick={() => {
-                      onStatusUpdate(project._id || project.id, 'rejected');
-                      onClose();
-                    }}
-                    className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors duration-200"
-                  >
-                    Reject Project
-                  </button>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Approval Status:</span>
+                    <span className={`text-sm font-medium px-2 py-1 rounded-full ${
+                      project.isApproved === 'approved' ? 'bg-green-100 text-green-800' :
+                      project.isApproved === 'rejected' ? 'bg-red-100 text-red-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {project.isApproved?.charAt(0).toUpperCase() + project.isApproved?.slice(1) || 'Pending'}
+                    </span>
+                  </div>
+                  {project.rejectionReason && (
+                    <div>
+                      <span className="text-sm text-gray-600">Rejection Reason:</span>
+                      <p className="text-sm text-red-600 mt-1">{project.rejectionReason}</p>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
 
-              {project.volunteerStatus === 'approved' && (
+              {/* Action Buttons */}
+              <div className="space-y-3">
                 <button
-                  onClick={() => {
-                    onStatusUpdate(project._id || project.id, 'completed');
-                    onClose();
-                  }}
-                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                  onClick={onEdit}
+                  className="w-full flex items-center justify-center bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors duration-200"
                 >
-                  Mark as Completed
+                  <PencilIcon className="h-4 w-4 mr-2" />
+                  Edit Project
                 </button>
-              )}
+                <button
+                  onClick={handleDelete}
+                  className="w-full flex items-center justify-center bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors duration-200"
+                >
+                  <TrashIcon className="h-4 w-4 mr-2" />
+                  Delete Project
+                </button>
+              </div>
             </div>
           </div>
         </div>

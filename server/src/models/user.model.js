@@ -56,6 +56,17 @@ const userSchema = new mongoose.Schema({
       maxlength: [500, 'Bio cannot exceed 500 characters']
     },
     dateOfBirth: Date
+  },
+  notifications: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Notification'
+  }],
+  
+  notificationPreferences: {
+    email: { type: Boolean, default: true },
+    push: { type: Boolean, default: true },
+    beneficiaryApplications: { type: Boolean, default: true },
+    projectUpdates: { type: Boolean, default: true }
   }
 }, {
   timestamps: true

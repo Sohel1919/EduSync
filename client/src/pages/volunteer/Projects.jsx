@@ -8,100 +8,7 @@ import VolunteerProjectsFilters from './components/VolunteerProjectsFilters';
 import VolunteerProjectsTable from './components/VolunteerProjectsTable';
 import VolunteerProjectDetailsModal from './components/VolunteerProjectDetailsModal';
 import VolunteerProjectForm from './components/VolunteerProjectForm';
-
-// Dummy data for demonstration
-const dummyProjects = [
-  {
-    _id: '1',
-    title: 'Community Education Drive',
-    summary: 'Providing free education to underprivileged children in rural areas',
-    description: 'A comprehensive education program aimed at providing quality education to children in remote villages. We focus on basic literacy, numeracy, and life skills.',
-    organization: 'Education for All Foundation',
-    location: 'Rural Maharashtra',
-    category: 'education',
-    targetAmount: 500000,
-    collectedAmount: 350000,
-    beneficiaries: 250,
-    deadline: '2024-06-30',
-    createdAt: '2024-01-15',
-    volunteerStatus: 'approved',
-    priority: 'high',
-    images: [],
-    tags: ['education', 'children', 'rural']
-  },
-  {
-    _id: '2',
-    title: 'Health Camp Initiative',
-    summary: 'Free medical checkups and healthcare services in urban slums',
-    description: 'Organizing regular health camps in urban slum areas to provide basic healthcare services, medicines, and health awareness programs.',
-    organization: 'Health First NGO',
-    location: 'Mumbai Slums',
-    category: 'healthcare',
-    targetAmount: 300000,
-    collectedAmount: 180000,
-    beneficiaries: 500,
-    deadline: '2024-05-15',
-    createdAt: '2024-02-01',
-    volunteerStatus: 'pending',
-    priority: 'medium',
-    images: [],
-    tags: ['healthcare', 'medical', 'slums']
-  },
-  {
-    _id: '3',
-    title: 'Environmental Cleanup Drive',
-    summary: 'Beach and river cleanup with community participation',
-    description: 'Weekly cleanup drives at popular beaches and riverbanks, involving local communities and creating awareness about environmental conservation.',
-    organization: 'Green Earth Society',
-    location: 'Goa Beaches',
-    category: 'environment',
-    targetAmount: 200000,
-    collectedAmount: 120000,
-    beneficiaries: 1000,
-    deadline: '2024-04-20',
-    createdAt: '2024-01-20',
-    volunteerStatus: 'completed',
-    priority: 'low',
-    images: [],
-    tags: ['environment', 'cleanup', 'beach']
-  },
-  {
-    _id: '4',
-    title: 'Women Empowerment Program',
-    summary: 'Skill development and entrepreneurship training for women',
-    description: 'Providing vocational training and entrepreneurship skills to underprivileged women to help them become financially independent.',
-    organization: 'Women Empowerment Trust',
-    location: 'Delhi NCR',
-    category: 'empowerment',
-    targetAmount: 400000,
-    collectedAmount: 250000,
-    beneficiaries: 150,
-    deadline: '2024-07-31',
-    createdAt: '2024-02-10',
-    volunteerStatus: 'approved',
-    priority: 'high',
-    images: [],
-    tags: ['women', 'empowerment', 'skills']
-  },
-  {
-    _id: '5',
-    title: 'Disaster Relief Operation',
-    summary: 'Emergency relief for flood-affected families',
-    description: 'Providing immediate relief including food, shelter, and medical aid to families affected by recent floods in the region.',
-    organization: 'Disaster Response Team',
-    location: 'Flood-affected Areas',
-    category: 'disaster-relief',
-    targetAmount: 600000,
-    collectedAmount: 450000,
-    beneficiaries: 300,
-    deadline: '2024-03-31',
-    createdAt: '2024-01-05',
-    volunteerStatus: 'rejected',
-    priority: 'high',
-    images: [],
-    tags: ['disaster', 'relief', 'emergency']
-  }
-];
+import { projectRequestsAPI } from '../../services/apiService';
 
 export default function VolunteerProjects() {
   const [projects, setProjects] = useState([]);
@@ -115,28 +22,144 @@ export default function VolunteerProjects() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [showProjectForm, setShowProjectForm] = useState(false);
 
-  // Fetch volunteer projects
+  // Fetch volunteer projects from backend
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      // Simulate API call with dummy data
-      setTimeout(() => {
-        setProjects(dummyProjects);
-        setFilteredProjects(dummyProjects);
-        setLoading(false);
-      }, 1000);
+      console.log('Fetching volunteer projects...');
       
-      // Actual API call would be:
-      // const response = await projectsAPI.getVolunteerProjects();
-      // setProjects(response.data);
-      // setFilteredProjects(response.data);
+      // Try multiple approaches to get user's projects
+      let response;
+      
+      try {
+        // First try the user-specific endpoint
+        response = await projectRequestsAPI.getMyProjects();
+        console.log('Using getMyProjects endpoint');
+      } catch (endpointError) {
+        console.log('getMyProjects failed, falling back to getAll with filtering');
+        // Fallback: get all projects and filter client-side
+        response = await projectRequestsAPI.getAll();
+        
+        if (response.data.success) {
+          // Filter to show only approved projects and user's own projects
+          const allProjects = response.data.data || [];
+          const userProjects = allProjects.filter(project => 
+            project.isApproved === 'approved' || 
+            (project.createdBy && project.createdBy._id === getCurrentUserId())
+          );
+          response.data.data = userProjects;
+        }
+      }
+      
+      console.log('Projects API Response:', response);
+      
+      if (response.data.success) {
+        const projectsData = response.data.data || [];
+        console.log('Raw projects data:', projectsData);
+        
+        // Transform API data to match component structure
+        const transformedProjects = projectsData.map(project => ({
+          _id: project._id,
+          title: project.title,
+          summary: project.summary,
+          description: project.description,
+          organization: project.organization,
+          location: project.location,
+          category: project.category,
+          targetAmount: project.targetAmount,
+          collectedAmount: project.currentAmount || 0,
+          beneficiaries: project.beneficiaries,
+          deadline: project.deadline,
+          createdAt: project.createdAt,
+          volunteerStatus: mapApprovalStatus(project.isApproved),
+          priority: calculatePriority(project.deadline, project.targetAmount, project.currentAmount),
+          images: project.projectImage ? [project.projectImage.url] : [],
+          tags: project.tags || [],
+          progress: project.progress || 0,
+          donors: project.donors || 0,
+          isApproved: project.isApproved,
+          projectImage: project.projectImage,
+          rejectionReason: project.rejectionReason,
+          createdBy: project.createdBy
+        }));
+        
+        console.log('Transformed projects:', transformedProjects);
+        setProjects(transformedProjects);
+        setFilteredProjects(transformedProjects);
+      } else {
+        console.error('API returned success: false', response.data);
+        showToast.error(response.data.message || 'Failed to load projects');
+        setProjects([]);
+        setFilteredProjects([]);
+      }
       
     } catch (error) {
       console.error('Error fetching volunteer projects:', error);
-      showToast.error('Failed to load projects');
+      
+      // More detailed error logging
+      if (error.response) {
+        console.error('Server error details:', {
+          status: error.response.status,
+          data: error.response.data,
+          headers: error.response.headers
+        });
+        showToast.error(error.response.data?.message || `Server error: ${error.response.status}`);
+      } else if (error.request) {
+        console.error('No response received:', error.request);
+        showToast.error('Network error: Unable to connect to server');
+      } else {
+        console.error('Error setting up request:', error.message);
+        showToast.error('Failed to load projects');
+      }
+      
       setProjects([]);
       setFilteredProjects([]);
+    } finally {
       setLoading(false);
+    }
+  };
+
+  // Helper function to get current user ID (you might need to adjust this based on your auth context)
+  const getCurrentUserId = () => {
+    // This depends on how you store user info
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        return user._id || user.id;
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+      }
+    }
+    return null;
+  };
+
+  // Map backend approval status to volunteer status
+  const mapApprovalStatus = (isApproved) => {
+    switch (isApproved) {
+      case 'approved':
+        return 'approved';
+      case 'rejected':
+        return 'rejected';
+      case 'pending':
+        return 'pending';
+      default:
+        return 'pending';
+    }
+  };
+
+  // Calculate priority based on deadline and funding
+  const calculatePriority = (deadline, targetAmount, currentAmount) => {
+    try {
+      const daysRemaining = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24));
+      const fundingProgress = targetAmount > 0 ? (currentAmount / targetAmount) * 100 : 0;
+      
+      if (daysRemaining < 7 || fundingProgress < 30) return 'high';
+      if (daysRemaining < 30 || fundingProgress < 60) return 'medium';
+      return 'low';
+    } catch (error) {
+      console.error('Error calculating priority:', error);
+      return 'medium';
     }
   };
 
@@ -192,50 +215,40 @@ export default function VolunteerProjects() {
     setFilteredProjects(filtered);
   }, [projects, searchTerm, statusFilter, priorityFilter, sortBy]);
 
-  const handleStatusUpdate = async (projectId, newStatus) => {
+  const handleEditProject = (project) => {
+    setSelectedProject(project);
+    setShowProjectForm(true);
+  };
+
+  const handleDeleteProject = async (projectId) => {
+    if (!window.confirm('Are you sure you want to delete this project?')) {
+      return;
+    }
+
     try {
-      // Simulate API call
-      setProjects(prev => prev.map(project => 
-        project._id === projectId 
-          ? { ...project, volunteerStatus: newStatus }
-          : project
-      ));
+      const response = await projectRequestsAPI.delete(projectId);
       
-      showToast.success(`Project ${newStatus} successfully`);
-      
-      // Actual API call would be:
-      // await projectsAPI.updateVolunteerStatus(projectId, { status: newStatus });
-      // fetchProjects();
-      
+      if (response.data.success) {
+        showToast.success('Project deleted successfully');
+        fetchProjects(); // Refresh the list
+      } else {
+        showToast.error('Failed to delete project');
+      }
     } catch (error) {
-      console.error('Error updating project status:', error);
-      showToast.error('Failed to update project status');
+      console.error('Error deleting project:', error);
+      showToast.error('Failed to delete project');
     }
   };
 
   const handleCreateProject = async (projectData) => {
     try {
-      // Simulate API call
-      const newProject = {
-        _id: Date.now().toString(),
-        ...projectData,
-        volunteerStatus: 'pending',
-        createdAt: new Date().toISOString(),
-        collectedAmount: 0
-      };
-      
-      setProjects(prev => [newProject, ...prev]);
+      // The VolunteerProjectForm already handles API calls
+      // Just refresh the projects list after creation
+      fetchProjects();
       setShowProjectForm(false);
-      showToast.success('Project created successfully!');
-      
-      // Actual API call would be:
-      // await projectsAPI.createVolunteerProject(projectData);
-      // fetchProjects();
-      // setShowProjectForm(false);
-      
+      setSelectedProject(null);
     } catch (error) {
-      console.error('Error creating project:', error);
-      showToast.error('Failed to create project');
+      console.error('Error in project creation callback:', error);
     }
   };
 
@@ -272,7 +285,8 @@ export default function VolunteerProjects() {
           statusFilter={statusFilter}
           priorityFilter={priorityFilter}
           onViewProject={setSelectedProject}
-          onStatusUpdate={handleStatusUpdate}
+          onEditProject={handleEditProject}
+          onDeleteProject={handleDeleteProject}
         />
 
         {/* Project Details Modal */}
@@ -280,15 +294,27 @@ export default function VolunteerProjects() {
           <VolunteerProjectDetailsModal
             project={selectedProject}
             onClose={() => setSelectedProject(null)}
-            onStatusUpdate={handleStatusUpdate}
+            onEdit={() => {
+              handleEditProject(selectedProject);
+              setSelectedProject(null);
+            }}
+            onDelete={() => {
+              handleDeleteProject(selectedProject._id);
+              setSelectedProject(null);
+            }}
           />
         )}
 
-        {/* Create Project Form Modal */}
+        {/* Create/Edit Project Form Modal */}
         {showProjectForm && (
           <VolunteerProjectForm
+            project={selectedProject}
             onSave={handleCreateProject}
-            onClose={() => setShowProjectForm(false)}
+            onClose={() => {
+              setShowProjectForm(false);
+              setSelectedProject(null);
+            }}
+            refreshProjects={fetchProjects}
           />
         )}
       </div>

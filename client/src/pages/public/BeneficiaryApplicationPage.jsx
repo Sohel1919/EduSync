@@ -313,22 +313,14 @@ const BeneficiaryApplicationPage = () => {
       submitData.append('projectId', project?._id || projectId);
       submitData.append('projectTitle', project?.title || '');
       
-      // Add personal information
+      // Add form data as JSON strings
       submitData.append('personalInfo', JSON.stringify(formData.personalInfo));
-      
-      // Add contact information
       submitData.append('contactInfo', JSON.stringify(formData.contactInfo));
-      
-      // Add family background
       submitData.append('familyBackground', JSON.stringify(formData.familyBackground));
-      
-      // Add application details
       submitData.append('applicationDetails', JSON.stringify(formData.applicationDetails));
-      
-      // Add additional information
       submitData.append('additionalInfo', JSON.stringify(formData.additionalInfo));
       
-      // Add documents
+      // Add documents - using the correct field names from backend
       if (formData.documents.idProof) {
         submitData.append('idProof', formData.documents.idProof);
       }
@@ -342,13 +334,17 @@ const BeneficiaryApplicationPage = () => {
         submitData.append('medicalProof', formData.documents.medicalProof);
       }
       
-      // Add other documents
-      formData.documents.otherDocuments.forEach((file, index) => {
-        submitData.append(`otherDocuments`, file);
+      // Add other documents - using the correct field name (without index)
+      formData.documents.otherDocuments.forEach((file) => {
+        submitData.append('otherDocuments', file);
       });
 
+      console.log('Submitting beneficiary application...');
+      
       // Submit to backend API
       const response = await beneficiariesAPI.create(submitData);
+      
+      console.log('Application response:', response.data);
       
       if (response.data.success) {
         alert('Application submitted successfully! We will review your application and contact you within 5-7 working days.');
@@ -358,7 +354,19 @@ const BeneficiaryApplicationPage = () => {
       }
     } catch (error) {
       console.error('Application error:', error);
-      alert(error.response?.data?.message || 'An error occurred. Please try again.');
+      
+      // Handle specific error cases
+      if (error.response?.status === 401) {
+        alert('Your session has expired. Please login again.');
+        navigate('/auth/signin');
+      } else if (error.response?.status === 400) {
+        alert(error.response.data.message || 'Please check your application data and try again.');
+      } else if (error.response?.status === 409) {
+        alert('You have already applied to this project.');
+        navigate('/projects');
+      } else {
+        alert(error.response?.data?.message || 'An error occurred. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }

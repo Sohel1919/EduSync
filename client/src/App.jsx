@@ -26,6 +26,7 @@ import Loader from './components/common/Loader';
 
 // Private pages (require authentication, any role)
 import DonationPage from './pages/private/DonationPage';
+import NotificationsPage from './pages/private/NotificationsPage';
 
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -33,11 +34,14 @@ import AdminProjects from './pages/admin/AdminProjects';
 import AdminVolunteers from './pages/admin/AdminVolunteers';
 import AdminDonations from './pages/admin/AdminDonations';
 import AdminProjectDonations from './pages/admin/AdminProjectDonations';
+import AdminProjectRequests from './pages/admin/AdminProjectRequests';
+import AdminBeneficiaryApplication from './pages/admin/AdminBeneficiaryApplication';
 import AdminSettings from './pages/admin/AdminSettings';
 
 // Volunteer pages
 import VolunteerDashboardPage from './pages/volunteer/VolunteerDashboardPage';
 import Projects from './pages/volunteer/Projects';
+import VolunteerBeneficiaryApplication from './pages/volunteer/VolunteerBeneficiaryApplication';
 import Profile from './pages/volunteer/Profile';
 import Attendance from './pages/volunteer/Attendance';
 
@@ -72,6 +76,7 @@ import {
   TrophyIcon,
   HeartIcon,
   DocumentTextIcon,
+  UserIcon,
   BookOpenIcon
 } from '@heroicons/react/24/outline';
 
@@ -142,6 +147,8 @@ const Layout = ({ children }) => {
 const adminNavigation = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: HomeIcon },
   { name: 'Projects', href: '/admin/projects', icon: FolderIcon },
+  { name: 'Project Requests', href: '/admin/project-requests', icon: DocumentTextIcon },
+  { name: 'Beneficiary Application', href: '/admin/beneficiary-application', icon: UserIcon },
   { name: 'Volunteers', href: '/admin/volunteers', icon: UserGroupIcon },
   { name: 'Donations', href: '/admin/donations', icon: CurrencyDollarIcon },
   { name: 'Project Donations', href: '/admin/project-donations', icon: ChartBarIcon },
@@ -151,6 +158,7 @@ const adminNavigation = [
 const volunteerNavigation = [
   { name: 'Dashboard', href: '/volunteer/dashboard', icon: HomeIcon },
   { name: 'Projects', href: '/volunteer/projects', icon: CheckCircleIcon },
+  { name: 'Beneficiary Application', href: '/volunteer/beneficiary-application', icon: UserIcon },
   { name: 'Attendance', href: '/volunteer/attendance', icon: CalendarIcon },
   { name: 'Profile', href: '/volunteer/profile', icon: UserGroupIcon },
 ];
@@ -208,6 +216,14 @@ function App() {
                     </ProtectedRoute>
                   } 
                 />
+                <Route 
+                  path="/notifications" 
+                  element={
+                    <ProtectedRoute>
+                      <NotificationsPage />
+                    </ProtectedRoute>
+                  } 
+                />
                 
                 {/* Admin Routes with DashboardLayout */}
                 <Route 
@@ -234,6 +250,8 @@ function App() {
                 >
                   <Route path="dashboard" element={<AdminDashboard />} />
                   <Route path="projects" element={<AdminProjects />} />
+                  <Route path="project-requests" element={<AdminProjectRequests />} />
+                  <Route path="beneficiary-application" element={<AdminBeneficiaryApplication />} />
                   <Route path="volunteers" element={<AdminVolunteers />} />
                   <Route path="donations" element={<AdminDonations />} />
                   <Route path="project-donations" element={<AdminProjectDonations />} />
@@ -265,6 +283,7 @@ function App() {
                 >
                   <Route path="dashboard" element={<VolunteerDashboardPage />} />
                   <Route path="projects" element={<Projects />} />
+                  <Route path="beneficiary-application" element={<VolunteerBeneficiaryApplication />} />
                   <Route path="attendance" element={<Attendance />} />
                   <Route path="profile" element={<Profile />} />
                 </Route>

@@ -3,10 +3,12 @@ import { motion } from 'framer-motion';
 import { 
   PlusIcon,
   MagnifyingGlassIcon,
-  EyeIcon
+  EyeIcon,
+  DocumentTextIcon,
+  PencilSquareIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline';
-import { FaFolder, FaRupeeSign, FaChartBar, FaUsers } from 'react-icons/fa';
-import ProjectCard from './components/ProjectCard';
+import { FaFolder, FaRupeeSign, FaChartBar, FaUsers, FaCalendar, FaMapMarkerAlt } from 'react-icons/fa';
 import ProjectForm from './components/ProjectForm';
 import ProjectDetailsModal from './components/ProjectDetailsModal';
 import { projectsAPI } from '../../services/apiService';
@@ -224,22 +226,88 @@ export default function AdminProjects() {
     setSelectedProject(null);
   };
 
+  // Format currency
+  const formatCurrency = (amount) => {
+    if (!amount) return '₹0';
+    return `₹${(amount / 1000).toFixed(0)}K`;
+  };
+
+  // Get status badge
+  const getStatusBadge = (status) => {
+    const styles = {
+      active: 'bg-green-100 text-green-800 border-green-200',
+      paused: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      completed: 'bg-blue-100 text-blue-800 border-blue-200',
+      draft: 'bg-gray-100 text-gray-800 border-gray-200'
+    };
+    
+    return (
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${styles[status] || 'bg-gray-100 text-gray-800'}`}>
+        {status?.charAt(0)?.toUpperCase() + status?.slice(1) || 'Unknown'}
+      </span>
+    );
+  };
+
+  // Get category badge
+  const getCategoryBadge = (category) => {
+    const styles = {
+      education: 'bg-blue-50 text-blue-700 border-blue-200',
+      healthcare: 'bg-green-50 text-green-700 border-green-200',
+      empowerment: 'bg-purple-50 text-purple-700 border-purple-200',
+      environment: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      'disaster-relief': 'bg-red-50 text-red-700 border-red-200'
+    };
+    
+    return (
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${styles[category] || 'bg-gray-50 text-gray-700'}`}>
+        {category?.split('-')?.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') || 'Uncategorized'}
+      </span>
+    );
+  };
+
+  // Calculate progress
+  const calculateProgress = (project) => {
+    if (!project.targetAmount) return 0;
+    const progress = ((project.collectedAmount || 0) / project.targetAmount) * 100;
+    return Math.min(100, Math.max(0, Math.round(progress)));
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-primary-50/20 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Projects Management</h1>
-            <p className="text-gray-600 mt-2">Create and manage charity projects</p>
+            <motion.h1 
+              className="text-3xl font-bold text-gray-900"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              Projects Management
+            </motion.h1>
+            <motion.p 
+              className="text-gray-600 mt-2"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              Create and manage charity projects
+            </motion.p>
           </div>
-          <button
-            onClick={handleCreateProject}
-            className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors duration-200"
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <PlusIcon className="h-5 w-5 mr-2" />
-            New Project
-          </button>
+            <button
+              onClick={handleCreateProject}
+              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg hover:from-primary-700 hover:to-secondary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-300 font-medium shadow-lg"
+            >
+              <PlusIcon className="h-5 w-5 mr-2" />
+              New Project
+            </button>
+          </motion.div>
         </div>
 
         {/* Stats Cards */}
@@ -249,25 +317,29 @@ export default function AdminProjects() {
               name: 'Total Projects', 
               value: stats.totalProjects, 
               icon: FaFolder, 
-              color: 'bg-blue-500'
+              color: 'from-primary-500 to-primary-600',
+              bgColor: 'bg-primary-50'
             },
             { 
               name: 'Total Target', 
               value: `₹${(stats.totalTarget / 1000).toFixed(0)}K`, 
               icon: FaRupeeSign, 
-              color: 'bg-green-500'
+              color: 'from-green-500 to-emerald-600',
+              bgColor: 'bg-green-50'
             },
             { 
               name: 'Total Collected', 
               value: `₹${(stats.totalCollected / 1000).toFixed(0)}K`, 
               icon: FaChartBar, 
-              color: 'bg-purple-500'
+              color: 'from-purple-500 to-indigo-600',
+              bgColor: 'bg-purple-50'
             },
             { 
               name: 'Beneficiaries', 
               value: stats.totalBeneficiaries.toLocaleString(), 
               icon: FaUsers, 
-              color: 'bg-amber-500'
+              color: 'from-amber-500 to-orange-600',
+              bgColor: 'bg-amber-50'
             },
           ].map((stat, index) => (
             <motion.div
@@ -275,20 +347,18 @@ export default function AdminProjects() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="bg-white overflow-hidden shadow rounded-lg"
+              className="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300"
             >
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className={`p-3 rounded-lg ${stat.color} text-white`}>
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">{stat.name}</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                  </div>
+                  <div className={`p-3 rounded-xl ${stat.bgColor}`}>
+                    <div className={`p-2 rounded-lg bg-gradient-to-r ${stat.color} text-white`}>
                       <stat.icon className="h-6 w-6" />
                     </div>
-                  </div>
-                  <div className="ml-4 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">{stat.name}</dt>
-                      <dd className="text-lg font-semibold text-gray-900">{stat.value}</dd>
-                    </dl>
                   </div>
                 </div>
               </div>
@@ -297,19 +367,24 @@ export default function AdminProjects() {
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white shadow rounded-lg p-6 mb-6">
+        <motion.div 
+          className="bg-white shadow-lg rounded-xl border border-gray-200 p-6 mb-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Search */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+                <MagnifyingGlassIcon className="h-5 w-5 text-primary-400" />
               </div>
               <input
                 type="text"
                 placeholder="Search projects..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-300"
               />
             </div>
 
@@ -317,7 +392,7 @@ export default function AdminProjects() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-300"
             >
               {categories.map(category => (
                 <option key={category.value} value={category.value}>
@@ -330,7 +405,7 @@ export default function AdminProjects() {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-300"
             >
               {statuses.map(status => (
                 <option key={status.value} value={status.value}>
@@ -343,7 +418,7 @@ export default function AdminProjects() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-300"
             >
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
@@ -351,25 +426,31 @@ export default function AdminProjects() {
               <option value="deadline">Deadline</option>
             </select>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Projects List */}
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">
+        {/* Projects Table */}
+        <motion.div 
+          className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-primary-100/50">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <DocumentTextIcon className="h-5 w-5 mr-2 text-primary-600" />
               Projects ({filteredProjects.length})
             </h3>
           </div>
 
           {loading ? (
-            <div className="p-6">
+            <div className="p-8">
               <div className="animate-pulse space-y-4">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="flex space-x-4">
-                    <div className="rounded-full bg-gray-200 h-12 w-12"></div>
+                  <div key={i} className="flex space-x-4 items-center">
+                    <div className="rounded-lg bg-gray-200 h-12 w-12"></div>
                     <div className="flex-1 space-y-2">
                       <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                     </div>
                   </div>
                 ))}
@@ -377,9 +458,9 @@ export default function AdminProjects() {
             </div>
           ) : currentProjects.length === 0 ? (
             <div className="text-center py-12">
-              <FaFolder className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No projects found</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <FaFolder className="mx-auto h-16 w-16 text-gray-400" />
+              <h3 className="mt-4 text-lg font-medium text-gray-900">No projects found</h3>
+              <p className="mt-2 text-sm text-gray-500 max-w-md mx-auto">
                 {searchTerm || selectedCategory !== 'all' || selectedStatus !== 'all' 
                   ? 'Try adjusting your search or filter to find what you are looking for.'
                   : 'Get started by creating a new project.'
@@ -387,66 +468,186 @@ export default function AdminProjects() {
               </p>
             </div>
           ) : (
-            <>
-              <div className="divide-y divide-gray-200">
-                {currentProjects.map((project, index) => (
-                  <ProjectCard
-                    key={project._id || project.id}
-                    project={project}
-                    index={index}
-                    onView={openDetails}
-                    onEdit={openEditForm}
-                    onDelete={handleDeleteProject}
-                  />
-                ))}
-              </div>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="px-6 py-4 border-t border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-700">
-                      Showing <span className="font-medium">{indexOfFirstProject + 1}</span> to{' '}
-                      <span className="font-medium">
-                        {Math.min(indexOfLastProject, filteredProjects.length)}
-                      </span>{' '}
-                      of <span className="font-medium">{filteredProjects.length}</span> results
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                        className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Project Details
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Organization & Location
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Target & Progress
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Status & Category
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {currentProjects.map((project, index) => {
+                    const progress = calculateProgress(project);
+                    const progressWidth = Math.max(2, progress);
+                    
+                    return (
+                      <motion.tr
+                        key={project._id || project.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="hover:bg-primary-50/30 transition-colors duration-150 group"
                       >
-                        Previous
-                      </button>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`px-3 py-2 text-sm font-medium rounded-lg ${
-                            currentPage === page
-                              ? 'bg-primary-600 text-white'
-                              : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      ))}
-                      <button
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                        disabled={currentPage === totalPages}
-                        className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-12 w-12 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                              <FaFolder className="h-6 w-6 text-white" />
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors duration-200">
+                                {project.title}
+                              </div>
+                              <div className="text-sm text-gray-500 mt-1 line-clamp-2 max-w-xs">
+                                {project.summary}
+                              </div>
+                              <div className="text-xs text-gray-500 flex items-center mt-1">
+                                <FaCalendar className="h-3 w-3 mr-1 text-primary-400" />
+                                Created: {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : 'Unknown date'}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {project.organization}
+                          </div>
+                          <div className="text-sm text-gray-500 flex items-center mt-1">
+                            <FaMapMarkerAlt className="h-3 w-3 mr-1 text-primary-400" />
+                            {project.location}
+                          </div>
+                          <div className="text-xs text-primary-600 font-medium flex items-center mt-1">
+                            <FaUsers className="h-3 w-3 mr-1" />
+                            {project.beneficiaries} beneficiaries
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-bold text-gray-900">
+                            {formatCurrency(project.targetAmount)}
+                          </div>
+                          {project.collectedAmount && (
+                            <div className="text-xs text-gray-600 mt-1">
+                              Collected: {formatCurrency(project.collectedAmount)}
+                            </div>
+                          )}
+                          <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                            <div 
+                              className="bg-gradient-to-r from-primary-600 to-secondary-600 h-2 rounded-full transition-all duration-500"
+                              style={{ width: `${progressWidth}%` }}
+                            ></div>
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {progress}% Progress
+                          </div>
+                          <div className="text-xs text-gray-500 flex items-center mt-1">
+                            <FaCalendar className="h-3 w-3 mr-1 text-primary-400" />
+                            {project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="space-y-2">
+                            {getStatusBadge(project.status)}
+                            {getCategoryBadge(project.category)}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex items-center space-x-2">
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => openDetails(project)}
+                              className="inline-flex items-center p-2 border border-primary-300 text-primary-700 bg-primary-50 rounded-lg hover:bg-primary-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200"
+                              title="View Details"
+                            >
+                              <EyeIcon className="h-4 w-4" />
+                            </motion.button>
+                            
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => openEditForm(project)}
+                              className="inline-flex items-center p-2 border border-transparent text-white bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg hover:from-primary-700 hover:to-secondary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200"
+                              title="Edit Project"
+                            >
+                              <PencilSquareIcon className="h-4 w-4" />
+                            </motion.button>
+                            
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => handleDeleteProject(project._id || project.id)}
+                              className="inline-flex items-center p-2 border border-transparent text-white bg-gradient-to-r from-red-500 to-rose-600 rounded-lg hover:from-red-600 hover:to-rose-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
+                              title="Delete Project"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </motion.button>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
-        </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-700">
+                  Showing <span className="font-medium">{indexOfFirstProject + 1}</span> to{' '}
+                  <span className="font-medium">
+                    {Math.min(indexOfLastProject, filteredProjects.length)}
+                  </span>{' '}
+                  of <span className="font-medium">{filteredProjects.length}</span> results
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                        currentPage === page
+                          ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white shadow-lg'
+                          : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </motion.div>
 
         {/* Project Form Modal */}
         {showForm && (

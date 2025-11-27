@@ -2,7 +2,9 @@ import { motion } from 'framer-motion';
 import { 
   EyeIcon,
   MapPinIcon,
-  UsersIcon 
+  UsersIcon,
+  PencilIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline';
 import { 
   FaCheckCircle,
@@ -32,7 +34,8 @@ export default function VolunteerProjectsTable({
   statusFilter, 
   priorityFilter, 
   onViewProject, 
-  onStatusUpdate 
+  onEditProject,
+  onDeleteProject
 }) {
   
   const getStatusIcon = (status) => {
@@ -63,7 +66,7 @@ export default function VolunteerProjectsTable({
     const deadlineDate = new Date(deadline);
     const diffTime = deadlineDate - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+    return diffDays > 0 ? diffDays : 0;
   };
 
   if (loading) {
@@ -93,7 +96,7 @@ export default function VolunteerProjectsTable({
           <p className="mt-1 text-sm text-gray-500">
             {searchTerm || statusFilter !== 'all' || priorityFilter !== 'all' 
               ? 'Try adjusting your search or filter to find what you are looking for.'
-              : 'No projects assigned yet. Create your first project to get started!'
+              : 'No projects created yet. Create your first project to get started!'
             }
           </p>
         </div>
@@ -143,7 +146,8 @@ export default function VolunteerProjectsTable({
                 project={project}
                 index={index}
                 onViewProject={onViewProject}
-                onStatusUpdate={onStatusUpdate}
+                onEditProject={onEditProject}
+                onDeleteProject={onDeleteProject}
                 statusColors={statusColors}
                 priorityColors={priorityColors}
                 getStatusIcon={getStatusIcon}

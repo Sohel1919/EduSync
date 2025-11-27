@@ -138,11 +138,112 @@ export const volunteersAPI = {
   getAdminVolunteers: (params = {}) => api.get('/volunteers', { params }),
 };
 
+// Beneficiaries API
 export const beneficiariesAPI = {
-  getAll: () => api.get('/beneficiaries'),
-  getById: (id) => api.get(`/beneficiaries/${id}`),
-  create: (data) => api.post('/beneficiaries', data),
-  update: (id, data) => api.put(`/beneficiaries/${id}`, data),
+  // Create beneficiary application with file upload
+  create: (formData) => {
+    console.log('Creating beneficiary application:', formData);
+    return api.post('/beneficiaries/applications', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 60000, // 60 seconds for file uploads
+    });
+  },
+  
+  // Get user's beneficiary applications
+  getMyApplications: () => api.get('/beneficiaries/my-applications'),
+  
+  // Get beneficiary applications for a project (project creator only)
+  getProjectApplications: (projectId) => api.get(`/beneficiaries/project/${projectId}`),
+  
+  // Get single beneficiary application
+  getById: (beneficiaryId) => api.get(`/beneficiaries/${beneficiaryId}`),
+  
+  // Update beneficiary application status (project creator only)
+  updateStatus: (beneficiaryId, data) => api.patch(`/beneficiaries/${beneficiaryId}/status`, data),
+  
+  // Delete beneficiary application (applicant only)
+  delete: (beneficiaryId) => api.delete(`/beneficiaries/${beneficiaryId}`),
+  
+  // VOLUNTEER METHODS - Get applications for volunteer's projects
+  getVolunteerApplications: (filters = {}) => {
+    const params = new URLSearchParams();
+    Object.keys(filters).forEach(key => {
+      if (filters[key] && filters[key] !== 'all') {
+        params.append(key, filters[key]);
+      }
+    });
+    return api.get(`/beneficiaries/volunteer/my-projects/applications?${params.toString()}`);
+  },
+  
+  // ADMIN METHODS
+  // Get all beneficiary applications (Admin only)
+  getAllApplications: (filters = {}) => {
+    const params = new URLSearchParams();
+    Object.keys(filters).forEach(key => {
+      if (filters[key] && filters[key] !== 'all') {
+        params.append(key, filters[key]);
+      }
+    });
+    return api.get(`/beneficiaries/admin/applications?${params.toString()}`);
+  },
+  
+  // Bulk update application status (Admin only)
+  bulkUpdateStatus: (applicationIds, status, reviewNotes = '') => 
+    api.patch('/beneficiaries/admin/bulk-status', {
+      applicationIds,
+      status,
+      reviewNotes
+    })
+};
+
+export const notificationsAPI = {
+  get: (params) => api.get('/notifications', { params }),
+  markAsRead: (notificationId) => api.patch(`/notifications/${notificationId}/read`),
+  markAllAsRead: () => api.patch('/notifications/read-all'),
+  delete: (notificationId) => api.delete(`/notifications/${notificationId}`)
+};
+
+export const projectRequestsAPI = {
+  // Get all project requests (public route)
+  getAll: (params = {}) => api.get('/project-requests', { params }),
+  
+  // Get single project request by ID (public route)
+  getById: (id) => api.get(`/project-requests/${id}`),
+  
+  // Create new project request (protected route)
+  create: (formData) => {
+    return api.post('/project-requests', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  
+  // Update project request (protected route - owner or admin)
+  update: (id, formData) => {
+    return api.put(`/project-requests/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  
+  // Delete project request (protected route - owner or admin)
+  delete: (id) => api.delete(`/project-requests/${id}`),
+  
+  // Delete rejected project (for project owner)
+  deleteRejected: (id) => api.delete(`/project-requests/rejected/${id}`),
+  
+  // Get user's project requests (protected route)
+  getMyProjects: () => api.get('/project-requests/user/my-projects'),
+  
+  // Admin: Get all project requests with filtering (admin only)
+  getAdminProjects: (params = {}) => api.get('/project-requests/admin/all-projects', { params }),
+  
+  // Admin: Update project request status (admin only)
+  updateStatus: (id, statusData) => api.patch(`/project-requests/${id}/status`, statusData),
 };
 
 export const donationsAPI = {

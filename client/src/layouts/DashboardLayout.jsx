@@ -14,8 +14,11 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   ClockIcon,
-  EyeIcon
+  EyeIcon,
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
+import { useAuth } from '../context/AuthContext';
+import { notificationsAPI } from '../services/apiService';
 
 // Default navigation items - can be overridden via props
 const defaultNavigation = [
@@ -23,46 +26,6 @@ const defaultNavigation = [
   { name: 'Projects', href: '/projects', icon: DocumentTextIcon, current: false },
   { name: 'Profile', href: '/profile', icon: UserIcon, current: false },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon, current: false },
-];
-
-// Mock notifications data
-const mockNotifications = [
-  {
-    id: '1',
-    type: 'project_approved',
-    title: 'Project Approved! 🎉',
-    message: 'Your "Community Cleanup Drive" project has been approved and is now active.',
-    timestamp: '2024-01-20T10:30:00Z',
-    read: false,
-    projectId: '1'
-  },
-  {
-    id: '2',
-    type: 'project_rejected',
-    title: 'Project Needs Revision',
-    message: 'Your "Youth Mentorship Program" project needs some adjustments before approval.',
-    timestamp: '2024-01-19T14:20:00Z',
-    read: false,
-    projectId: '3'
-  },
-  {
-    id: '3',
-    type: 'volunteer_opportunity',
-    title: 'New Volunteer Opportunity',
-    message: 'A new project "Food Distribution" is looking for volunteers in your area.',
-    timestamp: '2024-01-18T09:15:00Z',
-    read: true,
-    projectId: '5'
-  },
-  {
-    id: '4',
-    type: 'system_update',
-    title: 'System Maintenance',
-    message: 'Scheduled maintenance this weekend. The system will be unavailable for 2 hours.',
-    timestamp: '2024-01-17T16:45:00Z',
-    read: true,
-    projectId: null
-  }
 ];
 
 export default function DashboardLayout({
@@ -78,10 +41,13 @@ export default function DashboardLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsError, setNotificationsError] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
   const notificationsRef = useRef(null);
+  const { user } = useAuth();
 
   // Close notifications when clicking outside
   useEffect(() => {
@@ -96,6 +62,43 @@ export default function DashboardLayout({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Fetch notifications from backend
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (!user) return;
+      
+      setNotificationsLoading(true);
+      setNotificationsError(null);
+      try {
+        const response = await notificationsAPI.get({
+          page: 1,
+          limit: 20,
+          unreadOnly: false
+        });
+        
+        if (response.data.success) {
+          setNotifications(response.data.data.notifications || []);
+        } else {
+          throw new Error(response.data.message || 'Failed to fetch notifications');
+        }
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+        setNotificationsError(error.response?.data?.message || 'Failed to load notifications');
+        // Fallback to empty array
+        setNotifications([]);
+      } finally {
+        setNotificationsLoading(false);
+      }
+    };
+
+    fetchNotifications();
+
+    // Set up polling for new notifications every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
+    
+    return () => clearInterval(interval);
+  }, [user]);
 
   // Update navigation items based on current route
   const updatedNavigation = navigationItems.map(item => ({
@@ -140,36 +143,69 @@ export default function DashboardLayout({
   const config = roleConfig[userRole] || roleConfig.user;
 
   // Notification functions
-  const markAsRead = (notificationId) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === notificationId 
-          ? { ...notification, read: true }
-          : notification
-      )
-    );
+  const markAsRead = async (notificationId) => {
+    try {
+      await notificationsAPI.markAsRead(notificationId);
+      
+      // Update local state optimistically
+      setNotifications(prev => 
+        prev.map(notification => 
+          notification._id === notificationId 
+            ? { ...notification, isRead: true }
+            : notification
+        )
+      );
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      // Revert optimistic update on error
+      setNotifications(prev => 
+        prev.map(notification => 
+          notification._id === notificationId 
+            ? { ...notification, isRead: false }
+            : notification
+        )
+      );
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notification => ({ ...notification, read: true }))
-    );
+  const markAllAsRead = async () => {
+    try {
+      await notificationsAPI.markAllAsRead();
+      
+      // Update local state optimistically
+      setNotifications(prev => 
+        prev.map(notification => ({ ...notification, isRead: true }))
+      );
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
   };
 
-  const deleteNotification = (notificationId) => {
-    setNotifications(prev => 
-      prev.filter(notification => notification.id !== notificationId)
-    );
+  const deleteNotification = async (notificationId) => {
+    try {
+      await notificationsAPI.delete(notificationId);
+      
+      // Update local state optimistically
+      setNotifications(prev => 
+        prev.filter(notification => notification._id !== notificationId)
+      );
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
   };
 
   const getNotificationIcon = (type) => {
     switch (type) {
-      case 'project_approved':
-        return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
-      case 'project_rejected':
-        return <XCircleIcon className="h-5 w-5 text-red-500" />;
-      case 'volunteer_opportunity':
+      case 'beneficiary_application':
+        return <UserIcon className="h-5 w-5 text-blue-500" />;
+      case 'application_status_update':
         return <DocumentTextIcon className="h-5 w-5 text-primary-500" />;
+      case 'project_update':
+        return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
+      case 'volunteer_application':
+        return <UserIcon className="h-5 w-5 text-purple-500" />;
+      case 'system':
+        return <Cog6ToothIcon className="h-5 w-5 text-gray-500" />;
       default:
         return <BellIcon className="h-5 w-5 text-gray-500" />;
     }
@@ -177,28 +213,57 @@ export default function DashboardLayout({
 
   const getNotificationColor = (type) => {
     switch (type) {
-      case 'project_approved':
-        return 'bg-green-50 border-green-200';
-      case 'project_rejected':
-        return 'bg-red-50 border-red-200';
-      case 'volunteer_opportunity':
+      case 'beneficiary_application':
+        return 'bg-blue-50 border-blue-200';
+      case 'application_status_update':
         return 'bg-primary-50 border-primary-200';
+      case 'project_update':
+        return 'bg-green-50 border-green-200';
+      case 'volunteer_application':
+        return 'bg-purple-50 border-purple-200';
+      case 'system':
+        return 'bg-gray-50 border-gray-200';
       default:
         return 'bg-gray-50 border-gray-200';
     }
   };
 
-  const handleNotificationClick = (notification) => {
-    markAsRead(notification.id);
+  const handleNotificationClick = async (notification) => {
+    // Mark as read when clicked
+    if (!notification.isRead) {
+      await markAsRead(notification._id);
+    }
+    
     setNotificationsOpen(false);
     
-    // Navigate based on notification type
-    if (notification.projectId) {
-      navigate(`/projects/${notification.projectId}`);
+    // Navigate based on notification type and data
+    if (notification.data?.projectId) {
+      navigate(`/projects/${notification.data.projectId}`);
+    } else if (notification.data?.beneficiaryId) {
+      navigate(`/beneficiaries/${notification.data.beneficiaryId}`);
+    } else if (notification.data?.volunteerId) {
+      navigate(`/volunteers/${notification.data.volunteerId}`);
+    }
+    // Add more navigation logic based on your app's routes
+  };
+
+  const formatTimestamp = (timestamp) => {
+    const now = new Date();
+    const notificationDate = new Date(timestamp);
+    const diffInHours = (now - notificationDate) / (1000 * 60 * 60);
+    
+    if (diffInHours < 1) {
+      return 'Just now';
+    } else if (diffInHours < 24) {
+      return `${Math.floor(diffInHours)}h ago`;
+    } else if (diffInHours < 168) {
+      return `${Math.floor(diffInHours / 24)}d ago`;
+    } else {
+      return notificationDate.toLocaleDateString();
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -323,44 +388,77 @@ export default function DashboardLayout({
                 <button 
                   className="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 relative"
                   onClick={() => setNotificationsOpen(!notificationsOpen)}
+                  disabled={notificationsLoading}
                 >
                   <BellIcon className="h-6 w-6" />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                      {unreadCount}
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                  {notificationsLoading && (
+                    <span className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-1 border-white"></div>
                     </span>
                   )}
                 </button>
 
                 {/* Notifications Panel */}
                 {notificationsOpen && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                  <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 z-50">
                     <div className="p-4 border-b border-gray-200">
                       <div className="flex items-center justify-between">
                         <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
-                        {unreadCount > 0 && (
-                          <button
-                            onClick={markAllAsRead}
+                        <div className="flex items-center space-x-2">
+                          {unreadCount > 0 && (
+                            <button
+                              onClick={markAllAsRead}
+                              className="text-sm text-primary-600 hover:text-primary-800 font-medium"
+                              disabled={notificationsLoading}
+                            >
+                              Mark all as read
+                            </button>
+                          )}
+                          <Link
+                            to="/notifications"
                             className="text-sm text-primary-600 hover:text-primary-800 font-medium"
+                            onClick={() => setNotificationsOpen(false)}
                           >
-                            Mark all as read
-                          </button>
-                        )}
+                            View all
+                          </Link>
+                        </div>
                       </div>
                     </div>
                     
                     <div className="max-h-96 overflow-y-auto">
-                      {notifications.length === 0 ? (
-                        <div className="p-4 text-center text-gray-500">
-                          <BellIcon className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                          <p>No notifications</p>
+                      {notificationsLoading ? (
+                        <div className="p-8 text-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
+                          <p className="mt-2 text-sm text-gray-500">Loading notifications...</p>
+                        </div>
+                      ) : notificationsError ? (
+                        <div className="p-4 text-center text-red-600">
+                          <ExclamationTriangleIcon className="h-8 w-8 mx-auto mb-2" />
+                          <p className="text-sm">{notificationsError}</p>
+                          <button
+                            onClick={() => window.location.reload()}
+                            className="mt-2 text-sm text-primary-600 hover:text-primary-800"
+                          >
+                            Retry
+                          </button>
+                        </div>
+                      ) : notifications.length === 0 ? (
+                        <div className="p-8 text-center text-gray-500">
+                          <BellIcon className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                          <p className="text-sm">No notifications yet</p>
+                          <p className="text-xs mt-1">We'll notify you when something important happens</p>
                         </div>
                       ) : (
                         notifications.map((notification) => (
                           <div
-                            key={notification.id}
+                            key={notification._id}
                             className={`p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150 cursor-pointer ${
-                              !notification.read ? 'bg-blue-50' : ''
+                              !notification.isRead ? 'bg-blue-50' : ''
                             }`}
                             onClick={() => handleNotificationClick(notification)}
                           >
@@ -371,28 +469,36 @@ export default function DashboardLayout({
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between">
                                   <p className={`text-sm font-medium ${
-                                    notification.read ? 'text-gray-900' : 'text-gray-900 font-semibold'
+                                    !notification.isRead ? 'text-gray-900 font-semibold' : 'text-gray-900'
                                   }`}>
                                     {notification.title}
                                   </p>
-                                  {!notification.read && (
+                                  {!notification.isRead && (
                                     <span className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full"></span>
                                   )}
                                 </div>
                                 <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                                   {notification.message}
                                 </p>
-                                <p className="text-xs text-gray-400 mt-2">
-                                  {new Date(notification.timestamp).toLocaleDateString()} • {new Date(notification.timestamp).toLocaleTimeString()}
-                                </p>
+                                <div className="flex items-center justify-between mt-2">
+                                  <p className="text-xs text-gray-400">
+                                    {formatTimestamp(notification.createdAt)}
+                                  </p>
+                                  {notification.priority === 'high' && (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                      Important
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  deleteNotification(notification.id);
+                                  deleteNotification(notification._id);
                                 }}
                                 className="flex-shrink-0 text-gray-400 hover:text-red-500 transition-colors"
                                 title="Delete notification"
+                                disabled={notificationsLoading}
                               >
                                 <XMarkIcon className="h-4 w-4" />
                               </button>
@@ -402,15 +508,17 @@ export default function DashboardLayout({
                       )}
                     </div>
                     
-                    <div className="p-4 border-t border-gray-200">
-                      <Link
-                        to="/notifications"
-                        className="block text-center text-sm text-primary-600 hover:text-primary-800 font-medium"
-                        onClick={() => setNotificationsOpen(false)}
-                      >
-                        View all notifications
-                      </Link>
-                    </div>
+                    {notifications.length > 0 && !notificationsLoading && !notificationsError && (
+                      <div className="p-4 border-t border-gray-200">
+                        <Link
+                          to="/notifications"
+                          className="block text-center text-sm text-primary-600 hover:text-primary-800 font-medium"
+                          onClick={() => setNotificationsOpen(false)}
+                        >
+                          View all notifications
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

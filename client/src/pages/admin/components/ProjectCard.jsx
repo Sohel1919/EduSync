@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { FaEye, FaEdit, FaTrash, FaCalendar, FaMapMarkerAlt, FaUsers, FaRupeeSign } from 'react-icons/fa';
+import { FaEye, FaEdit, FaTrash, FaCalendar, FaMapMarkerAlt, FaUsers, FaRupeeSign, FaFolder } from 'react-icons/fa';
 
 // Format number to Indian currency format
 const formatIndianCurrency = (amount) => {
@@ -43,75 +43,82 @@ export default function ProjectCard({ project, index, onView, onEdit, onDelete }
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
-      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+      className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 group hover:border-primary-200"
     >
       <div className="flex items-start justify-between">
         {/* Left Section - Project Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between mb-3">
-            <div className="min-w-0 flex-1">
-              <h3 className="text-lg font-semibold text-gray-900 truncate">
-                {project.title}
-              </h3>
-              <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                {project.summary}
-              </p>
+          <div className="flex items-start space-x-4 mb-4">
+            <div className="flex-shrink-0 h-14 w-14 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+              <FaFolder className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-xl font-semibold text-gray-900 group-hover:text-primary-700 transition-colors duration-200 truncate">
+                    {project.title}
+                  </h3>
+                  <p className="text-gray-600 mt-2 line-clamp-2 leading-relaxed">
+                    {project.summary}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Meta Information */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             <div className="flex items-center text-sm text-gray-600">
-              <FaMapMarkerAlt className="flex-shrink-0 mr-2 text-gray-400" />
+              <FaMapMarkerAlt className="flex-shrink-0 mr-2 text-primary-400" />
               <span className="truncate">{project.location}</span>
             </div>
             <div className="flex items-center text-sm text-gray-600">
-              <FaUsers className="flex-shrink-0 mr-2 text-gray-400" />
+              <FaUsers className="flex-shrink-0 mr-2 text-primary-400" />
               <span>{project.beneficiaries} beneficiaries</span>
             </div>
             <div className="flex items-center text-sm text-gray-600">
-              <FaCalendar className="flex-shrink-0 mr-2 text-gray-400" />
+              <FaCalendar className="flex-shrink-0 mr-2 text-primary-400" />
               <span>{project.deadline ? new Date(project.deadline).toLocaleDateString() : 'No deadline'}</span>
             </div>
             <div className="flex items-center text-sm text-gray-600">
-              <FaRupeeSign className="flex-shrink-0 mr-2 text-gray-400" />
+              <FaRupeeSign className="flex-shrink-0 mr-2 text-primary-400" />
               <span>{formatIndianCurrency(project.targetAmount)}</span>
             </div>
           </div>
 
           {/* Progress and Status */}
           <div className="flex items-center justify-between">
-            <div className="flex-1 mr-4">
-              <div className="flex justify-between text-sm text-gray-600 mb-1">
-                <span>Progress</span>
-                <span>{progress}%</span>
+            <div className="flex-1 mr-6">
+              <div className="flex justify-between text-sm text-gray-600 mb-2">
+                <span className="font-medium">Progress</span>
+                <span className="font-semibold text-primary-600">{progress}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
-                  className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                  className="bg-gradient-to-r from-primary-600 to-secondary-600 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${Math.min(progress, 100)}%` }}
                 ></div>
               </div>
             </div>
             
             <div className="flex items-center space-x-2">
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(project.status)}`}>
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(project.status)}`}>
                 {project.status?.charAt(0).toUpperCase() + project.status?.slice(1) || 'Unknown'}
               </span>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getCategoryColor(project.category)}`}>
-                {project.category?.charAt(0).toUpperCase() + project.category?.slice(1) || 'Uncategorized'}
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getCategoryColor(project.category)}`}>
+                {project.category?.split('-')?.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') || 'Uncategorized'}
               </span>
             </div>
           </div>
         </div>
 
         {/* Right Section - Actions */}
-        <div className="ml-4 flex flex-col space-y-2">
+        <div className="ml-6 flex flex-col space-y-3">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => onView(project)}
-            className="inline-flex items-center p-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors duration-200"
+            className="inline-flex items-center p-3 border border-primary-300 text-primary-700 bg-primary-50 rounded-xl hover:bg-primary-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200"
             title="View Details"
           >
             <FaEye className="h-4 w-4" />
@@ -120,7 +127,7 @@ export default function ProjectCard({ project, index, onView, onEdit, onDelete }
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => onEdit(project)}
-            className="inline-flex items-center p-2 border border-transparent text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors duration-200"
+            className="inline-flex items-center p-3 border border-transparent text-white bg-gradient-to-r from-primary-600 to-secondary-600 rounded-xl hover:from-primary-700 hover:to-secondary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200"
             title="Edit Project"
           >
             <FaEdit className="h-4 w-4" />
@@ -129,7 +136,7 @@ export default function ProjectCard({ project, index, onView, onEdit, onDelete }
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => onDelete(project._id || project.id)}
-            className="inline-flex items-center p-2 border border-transparent text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
+            className="inline-flex items-center p-3 border border-transparent text-white bg-gradient-to-r from-red-500 to-rose-600 rounded-xl hover:from-red-600 hover:to-rose-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
             title="Delete Project"
           >
             <FaTrash className="h-4 w-4" />

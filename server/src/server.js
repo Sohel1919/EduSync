@@ -1,5 +1,6 @@
 import app from './app.js';
 import connectDB from './config/db.js';
+import { initializeSocket } from './utils/socket.js';
 
 const PORT = process.env.PORT || 5000;
 
@@ -27,3 +28,6 @@ process.on('uncaughtException', (err) => {
   console.log(err);
   process.exit(1);
 });
+
+// Initialize Socket.io
+initializeSocket(server);
