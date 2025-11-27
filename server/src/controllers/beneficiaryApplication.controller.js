@@ -4,6 +4,7 @@ import User from '../models/user.model.js';
 import Notification from '../models/notification.model.js';
 import { uploadToCloudinary, deleteFromCloudinary } from '../utils/cloudinary.js';
 import { emitNotification } from '../utils/socket.js';
+import { sendApplicationStatusEmail } from '../services/beneficiaryApplicationEmailService.js';
 
 // Helper function to upload files to Cloudinary
 const uploadFileToCloudinary = async (file, folder = 'beneficiary-documents') => {
@@ -281,6 +282,7 @@ export const updateBeneficiaryStatus = async (req, res) => {
     const { beneficiaryId } = req.params;
     const { status, reviewNotes } = req.body;
     const userId = req.user._id;
+    const userRole = req.user.role;
 
     // Validate status
     const validStatuses = ['pending', 'under-review', 'approved', 'rejected', 'on-hold'];
@@ -293,7 +295,7 @@ export const updateBeneficiaryStatus = async (req, res) => {
 
     const beneficiary = await Beneficiary.findById(beneficiaryId)
       .populate('projectId')
-      .populate('applicantId', 'firstName lastName email');
+      .populate('applicantId', 'firstName lastName email role');
 
     if (!beneficiary) {
       return res.status(404).json({
@@ -308,14 +310,75 @@ export const updateBeneficiaryStatus = async (req, res) => {
       createdBy: userId 
     });
 
-    if (!project && req.user.role !== 'admin') {
+    if (!project && userRole !== 'admin') {
       return res.status(403).json({
         success: false,
         message: 'Access denied. You are not the project creator or admin.'
       });
     }
 
-    // Update status
+    // Get reviewer info for email
+    const reviewer = await User.findById(userId);
+    const reviewerName = reviewer ? `${reviewer.firstName} ${reviewer.lastName}` : 'System';
+
+    // Handle role update and email sending for approved applications
+    if (status === 'approved') {
+      // Step 1: Check and update user role if needed
+      const applicant = await User.findById(beneficiary.applicantId._id);
+      if (applicant) {
+        // Only update role if current role is 'user'
+        if (applicant.role === 'user') {
+          applicant.role = 'beneficiary';
+          await applicant.save();
+          console.log(`Updated user ${applicant._id} role from 'user' to 'beneficiary'`);
+        } else {
+          console.log(`User ${applicant._id} role remains as '${applicant.role}' - no change needed`);
+        }
+      }
+
+      // Step 2: Send approval email
+      try {
+        const emailResult = await sendApplicationStatusEmail(
+          beneficiary, 
+          'approved', 
+          reviewerName
+        );
+
+        if (!emailResult.success) {
+          console.error('Failed to send approval email:', emailResult.error);
+          // Don't fail the request if email fails, just log it
+        } else {
+          console.log('Approval email sent successfully to:', beneficiary.contactInfo?.email);
+        }
+      } catch (emailError) {
+        console.error('Error sending approval email:', emailError);
+        // Continue with the process even if email fails
+      }
+    }
+
+    // Handle rejection email
+    if (status === 'rejected') {
+      try {
+        const emailResult = await sendApplicationStatusEmail(
+          beneficiary, 
+          'rejected', 
+          reviewerName,
+          reviewNotes
+        );
+
+        if (!emailResult.success) {
+          console.error('Failed to send rejection email:', emailResult.error);
+          // Don't fail the request if email fails, just log it
+        } else {
+          console.log('Rejection email sent successfully to:', beneficiary.contactInfo?.email);
+        }
+      } catch (emailError) {
+        console.error('Error sending rejection email:', emailError);
+        // Continue with the process even if email fails
+      }
+    }
+
+    // Update status and other fields
     beneficiary.status = status;
     beneficiary.reviewNotes = reviewNotes;
     beneficiary.reviewedBy = userId;
@@ -589,6 +652,10 @@ export const bulkUpdateBeneficiaryStatus = async (req, res) => {
       });
     }
 
+    // Get reviewer info for email
+    const reviewer = await User.findById(req.user._id);
+    const reviewerName = reviewer ? `${reviewer.firstName} ${reviewer.lastName}` : 'System';
+
     // Update applications
     const updateResult = await Beneficiary.updateMany(
       { _id: { $in: applicationIds } },
@@ -600,12 +667,50 @@ export const bulkUpdateBeneficiaryStatus = async (req, res) => {
       }
     );
 
-    // Send notifications to applicants
+    // Send notifications and emails to applicants
     const applications = await Beneficiary.find({ _id: { $in: applicationIds } })
-      .populate('applicantId', 'firstName lastName email')
+      .populate('applicantId', 'firstName lastName email role')
       .populate('projectId', 'title');
 
+    let emailSuccessCount = 0;
+    let emailFailureCount = 0;
+
     for (const application of applications) {
+      // Handle role update for approved applications
+      if (status === 'approved') {
+        const applicant = await User.findById(application.applicantId._id);
+        if (applicant && applicant.role === 'user') {
+          applicant.role = 'beneficiary';
+          await applicant.save();
+          console.log(`Updated user ${applicant._id} role from 'user' to 'beneficiary'`);
+        }
+      }
+
+      // Send email notification
+      try {
+        if (status === 'approved' || status === 'rejected') {
+          const emailResult = await sendApplicationStatusEmail(
+            application, 
+            status, 
+            reviewerName,
+            status === 'rejected' ? reviewNotes : ''
+          );
+
+          if (emailResult.success) {
+            emailSuccessCount++;
+            console.log(`Email sent successfully for application ${application._id}`);
+          } else {
+            emailFailureCount++;
+            console.error(`Failed to send email for application ${application._id}:`, emailResult.error);
+          }
+        }
+      } catch (emailError) {
+        emailFailureCount++;
+        console.error(`Error sending email for application ${application._id}:`, emailError);
+        // Continue with other applications even if email fails
+      }
+
+      // Create notification
       const notification = new Notification({
         recipient: application.applicantId._id,
         sender: req.user._id,
@@ -646,7 +751,11 @@ export const bulkUpdateBeneficiaryStatus = async (req, res) => {
       success: true,
       message: `${updateResult.modifiedCount} applications updated successfully`,
       data: {
-        modifiedCount: updateResult.modifiedCount
+        modifiedCount: updateResult.modifiedCount,
+        emailStats: {
+          success: emailSuccessCount,
+          failed: emailFailureCount
+        }
       }
     });
 
@@ -737,4 +846,16 @@ export const getVolunteerProjectBeneficiaries = async (req, res) => {
       message: 'Internal server error'
     });
   }
+};
+
+export default {
+  createBeneficiaryApplication,
+  getProjectBeneficiaries,
+  getUserBeneficiaries,
+  updateBeneficiaryStatus,
+  getBeneficiaryById,
+  deleteBeneficiaryApplication,
+  getAllBeneficiaryApplications,
+  bulkUpdateBeneficiaryStatus,
+  getVolunteerProjectBeneficiaries
 };
