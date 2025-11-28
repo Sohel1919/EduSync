@@ -66,8 +66,79 @@ const userSchema = new mongoose.Schema({
     email: { type: Boolean, default: true },
     push: { type: Boolean, default: true },
     beneficiaryApplications: { type: Boolean, default: true },
-    projectUpdates: { type: Boolean, default: true }
-  }
+    projectUpdates: { type: Boolean, default: true },
+    donationReceipts: { type: Boolean, default: true },
+    donationUpdates: { type: Boolean, default: true }
+  },
+
+  // Donation specific fields
+  donationPreferences: {
+    causes: [{
+      type: String,
+      enum: ['education', 'healthcare', 'women', 'general']
+    }],
+    frequency: {
+      type: String,
+      enum: ['one-time', 'monthly', 'quarterly', 'yearly'],
+      default: 'one-time'
+    },
+    isAnonymous: {
+      type: Boolean,
+      default: false
+    }
+  },
+
+  // Donation statistics
+  donationStats: {
+    totalDonations: {
+      type: Number,
+      default: 0
+    },
+    totalAmount: {
+      type: Number,
+      default: 0
+    },
+    lastDonationDate: Date,
+    firstDonationDate: Date,
+    favoriteCause: {
+      type: String,
+      enum: ['education', 'healthcare', 'women', 'general']
+    }
+  },
+
+  // Payment preferences (for recurring donations)
+  paymentMethods: [{
+    razorpay_payment_id: String,
+    method: String,
+    bank: String,
+    wallet: String,
+    isDefault: {
+      type: Boolean,
+      default: false
+    },
+    addedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+
+  // Subscription for recurring donations
+  subscriptions: [{
+    razorpay_subscription_id: String,
+    plan_id: String,
+    status: {
+      type: String,
+      enum: ['active', 'paused', 'cancelled', 'completed']
+    },
+    amount: Number,
+    currency: {
+      type: String,
+      default: 'INR'
+    },
+    frequency: String,
+    next_payment_date: Date,
+    created_at: Date
+  }]
 }, {
   timestamps: true
 });
@@ -92,6 +163,61 @@ userSchema.methods.isEmailVerificationTokenExpired = function() {
 // Check if reset password token is expired
 userSchema.methods.isResetPasswordTokenExpired = function() {
   return Date.now() > this.resetPasswordExpires;
+};
+
+// Update user role to donor after first successful donation
+userSchema.methods.updateToDonor = async function() {
+  if (this.role === 'user') {
+    this.role = 'donor';
+    await this.save();
+  }
+  return this;
+};
+
+// Update donation statistics
+userSchema.methods.updateDonationStats = async function(amount, cause) {
+  this.donationStats.totalDonations += 1;
+  this.donationStats.totalAmount += amount;
+  this.donationStats.lastDonationDate = new Date();
+  
+  if (!this.donationStats.firstDonationDate) {
+    this.donationStats.firstDonationDate = new Date();
+  }
+
+  // Update favorite cause based on most donated cause
+  if (cause) {
+    // This would require additional logic to track cause frequency
+    // For now, just set the latest cause as favorite
+    this.donationStats.favoriteCause = cause;
+  }
+
+  await this.save();
+  return this;
+};
+
+// Add payment method
+userSchema.methods.addPaymentMethod = async function(paymentData) {
+  const { razorpay_payment_id, method, bank, wallet } = paymentData;
+  
+  // If this is the first payment method, set as default
+  const isDefault = this.paymentMethods.length === 0;
+  
+  this.paymentMethods.push({
+    razorpay_payment_id,
+    method,
+    bank,
+    wallet,
+    isDefault,
+    addedAt: new Date()
+  });
+
+  await this.save();
+  return this;
+};
+
+// Get default payment method
+userSchema.methods.getDefaultPaymentMethod = function() {
+  return this.paymentMethods.find(method => method.isDefault) || this.paymentMethods[0];
 };
 
 export default mongoose.model('User', userSchema);

@@ -1,28 +1,21 @@
 import { motion } from 'framer-motion';
-import { CheckCircleIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, ArrowDownTrayIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
+import { toast } from 'react-hot-toast';
 
 export default function PaymentSuccess({ paymentData, onClose }) {
   const downloadReceipt = () => {
-    // Implement receipt download logic
-    const receiptContent = `
-      HopeBridge NGO Donation Receipt
-      
-      Receipt No: HB-${Date.now()}
-      Date: ${new Date().toLocaleDateString()}
-      Payment ID: ${paymentData.paymentId}
-      Amount: ₹${paymentData.amount}
-      Cause: ${paymentData.cause}
-      
-      Thank you for your generous donation!
-    `;
+    if (paymentData.receipt_url) {
+      window.open(paymentData.receipt_url, '_blank');
+    } else {
+      toast.error('Receipt is being generated. Please check back later.');
+    }
+  };
+
+  const shareViaEmail = () => {
+    const subject = `Donation Receipt - HopeBridge NGO`;
+    const body = `Thank you for your donation!\n\nDonation Details:\n- Amount: ₹${paymentData.amount}\n- Cause: ${paymentData.cause}\n- Payment ID: ${paymentData.paymentId}\n\nReceipt: ${paymentData.receipt_url || 'Will be available shortly'}`;
     
-    const blob = new Blob([receiptContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `HopeBridge-Receipt-${paymentData.paymentId}.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
+    window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
   };
 
   return (
@@ -56,15 +49,19 @@ export default function PaymentSuccess({ paymentData, onClose }) {
         <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
           <div className="flex justify-between mb-2">
             <span className="text-gray-600">Payment ID:</span>
-            <span className="font-mono text-sm">{paymentData.paymentId}</span>
+            <span className="font-mono text-sm">{paymentData.paymentId?.slice(-8) || 'Processing...'}</span>
           </div>
           <div className="flex justify-between mb-2">
             <span className="text-gray-600">Amount:</span>
             <span className="font-semibold">₹{paymentData.amount}</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between mb-2">
             <span className="text-gray-600">Cause:</span>
             <span className="font-semibold">{paymentData.cause}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Status:</span>
+            <span className="font-semibold text-green-600">Completed</span>
           </div>
         </div>
 
@@ -72,9 +69,17 @@ export default function PaymentSuccess({ paymentData, onClose }) {
           <button
             onClick={downloadReceipt}
             className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+            disabled={!paymentData.receipt_url}
           >
             <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
             Receipt
+          </button>
+          <button
+            onClick={shareViaEmail}
+            className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+          >
+            <EnvelopeIcon className="h-4 w-4 mr-2" />
+            Share
           </button>
           <button
             onClick={onClose}
@@ -83,6 +88,10 @@ export default function PaymentSuccess({ paymentData, onClose }) {
             Continue
           </button>
         </div>
+
+        <p className="text-xs text-gray-500 mt-4">
+          A confirmation email has been sent to {paymentData.donorInfo?.email || 'your email address'}
+        </p>
       </motion.div>
     </motion.div>
   );

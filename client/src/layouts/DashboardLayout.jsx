@@ -26,7 +26,7 @@ const defaultNavigation = [
   { name: 'Projects', href: '/projects', icon: DocumentTextIcon, current: false },
   { name: 'Profile', href: '/profile', icon: UserIcon, current: false },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon, current: false },
-];
+]; 
 
 export default function DashboardLayout({
   userRole = 'volunteer',

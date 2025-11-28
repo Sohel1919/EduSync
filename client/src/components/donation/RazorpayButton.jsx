@@ -1,16 +1,45 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { paymentService } from '../../services/paymentService';
+import { donationsAPI } from '../../services/apiService.js';
 import { toast } from 'react-hot-toast';
 
 export default function RazorpayButton({ 
   amount, 
   cause, 
+  causeName,
   donorInfo, 
   onSuccess, 
   onError 
 }) {
   const [isLoading, setIsLoading] = useState(false);
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => {
+        console.error('Razorpay script failed to load');
+        resolve(false);
+      };
+      document.body.appendChild(script);
+    });
+  };
+
+  const checkPaymentGateway = async () => {
+    try {
+      const response = await donationsAPI.getStatus();
+      return response.data.paymentGateway.configured;
+    } catch (error) {
+      console.error('Error checking payment gateway:', error);
+      return false;
+    }
+  };
 
   const handlePayment = async () => {
     if (!amount || amount < 10) {
@@ -21,37 +50,65 @@ export default function RazorpayButton({
     setIsLoading(true);
 
     try {
-      // Create order on your backend
-      const order = await paymentService.createOrder(amount);
-      
-      // Initialize Razorpay
-      const razorpay = await paymentService.initializeRazorpay({
-        key: process.env.REACT_APP_RAZORPAY_KEY_ID,
-        amount: order.amount,
-        currency: order.currency,
+      // Check if payment gateway is configured
+      const isGatewayReady = await checkPaymentGateway();
+      if (!isGatewayReady) {
+        throw new Error('Payment gateway is currently unavailable. Please try again later.');
+      }
+
+      // Load Razorpay script
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        throw new Error('Payment service failed to load. Please refresh the page and try again.');
+      }
+
+      // Create order on backend
+      const orderResponse = await donationsAPI.createOrder({
+        amount,
+        cause,
+        causeName,
+        donorInfo
+      });
+
+      const orderData = orderResponse.data;
+
+      if (!orderData.success) {
+        throw new Error(orderData.message || 'Failed to create payment order');
+      }
+
+      // Razorpay options
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || orderData.key,
+        amount: orderData.order.amount,
+        currency: orderData.order.currency,
         name: 'HopeBridge NGO',
-        description: `Donation for ${cause}`,
-        order_id: order.id,
+        description: `Donation for ${causeName}`,
+        order_id: orderData.order.id,
         handler: async function (response) {
           try {
-            // Verify payment on your backend
-            const verification = await paymentService.verifyPayment({
-              razorpay_payment_id: response.razorpay_payment_id,
+            // Verify payment with backend
+            const verificationResponse = await donationsAPI.verifyPayment({
               razorpay_order_id: response.razorpay_order_id,
-              razorpay_signature: response.razorpay_signature
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              method: response.method,
+              bank: response.bank,
+              wallet: response.wallet
             });
 
-            if (verification.success) {
+            const verificationData = verificationResponse.data;
+
+            if (verificationData.success) {
               onSuccess({
                 paymentId: response.razorpay_payment_id,
                 orderId: response.razorpay_order_id,
                 amount: amount,
-                cause: cause,
-                donorInfo: donorInfo
+                cause: causeName,
+                donorInfo: donorInfo,
+                receipt_url: verificationData.donation.receipt_url
               });
-              toast.success('Donation successful! Thank you for your generosity.');
             } else {
-              throw new Error('Payment verification failed');
+              throw new Error(verificationData.message || 'Payment verification failed');
             }
           } catch (error) {
             onError(error);
@@ -71,14 +128,20 @@ export default function RazorpayButton({
             setIsLoading(false);
             toast.error('Payment cancelled');
           }
+        },
+        notes: {
+          cause: cause,
+          causeName: causeName
         }
-      });
+      };
 
+      const razorpay = new window.Razorpay(options);
       razorpay.open();
+
     } catch (error) {
       console.error('Payment error:', error);
       onError(error);
-      toast.error('Payment failed. Please try again.');
+      toast.error(error.message || 'Payment failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -89,7 +152,7 @@ export default function RazorpayButton({
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       onClick={handlePayment}
-      disabled={isLoading}
+      disabled={isLoading || !amount || amount < 10}
       className="w-full bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold py-4 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {isLoading ? (

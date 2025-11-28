@@ -1,22 +1,75 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import DonationForm from '../../components/donation/DonationForm';
-import DonationHistory from '../../components/donation/DonationHistory';
-import PaymentSuccess from '../../components/donation/PaymentSuccess';
+import DonationForm from '../../components/donation/DonationForm.jsx';
+import DonationHistory from '../../components/donation/DonationHistory.jsx';
+import PaymentSuccess from '../../components/donation/PaymentSuccess.jsx';
+import { donationsAPI } from '../../services/apiService.js';
+import { toast } from 'react-hot-toast';
 
 export default function DonationPage() {
   const [activeTab, setActiveTab] = useState('donate');
   const [showSuccess, setShowSuccess] = useState(false);
   const [successData, setSuccessData] = useState(null);
+  const [donationStats, setDonationStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [apiStatus, setApiStatus] = useState('checking');
+
+  useEffect(() => {
+    checkApiStatus();
+    fetchDonationStats();
+  }, []);
+
+  const checkApiStatus = async () => {
+    try {
+      const response = await donationsAPI.getStatus();
+      if (response.data.success) {
+        setApiStatus('connected');
+      } else {
+        setApiStatus('error');
+      }
+    } catch (error) {
+      console.error('API connection error:', error);
+      setApiStatus('error');
+    }
+  };
+
+  const fetchDonationStats = async () => {
+    try {
+      const response = await donationsAPI.getStatistics();
+      setDonationStats(response.data);
+    } catch (error) {
+      console.error('Error fetching donation stats:', error);
+      if (error.response?.status !== 401) {
+        toast.error('Failed to load donation statistics');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDonationSuccess = (paymentData) => {
     setSuccessData(paymentData);
     setShowSuccess(true);
+    // Refresh stats after successful donation
+    fetchDonationStats();
+  };
+
+  const formatNumber = (num) => {
+    return new Intl.NumberFormat('en-IN').format(num);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* API Status Indicator */}
+        {apiStatus === 'error' && (
+          <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded-lg">
+            <p className="text-yellow-800">
+              ⚠️ Unable to connect to server. Please make sure the backend is running on port 5000.
+            </p>
+          </div>
+        )}
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -91,16 +144,47 @@ export default function DonationPage() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto"
         >
-          {[
-            { number: '10,000+', label: 'Lives Impacted' },
-            { number: '50+', label: 'Communities Served' },
-            { number: '₹5M+', label: 'Total Funds Raised' }
-          ].map((stat, index) => (
-            <div key={index} className="text-center">
-              <div className="text-3xl font-bold text-primary-600 mb-2">{stat.number}</div>
-              <div className="text-gray-600">{stat.label}</div>
-            </div>
-          ))}
+          {loading ? (
+            // Loading skeleton
+            Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className="text-center">
+                <div className="text-3xl font-bold text-gray-300 mb-2 animate-pulse">•••••</div>
+                <div className="text-gray-400 animate-pulse">Loading...</div>
+              </div>
+            ))
+          ) : donationStats ? (
+            [
+              { 
+                number: `${formatNumber(donationStats.total?.donors || 0)}+`, 
+                label: 'Lives Impacted' 
+              },
+              { 
+                number: `${formatNumber(donationStats.total?.donations || 0)}+`, 
+                label: 'Donations Made' 
+              },
+              { 
+                number: `₹${formatNumber(donationStats.total?.amount || 0)}+`, 
+                label: 'Total Funds Raised' 
+              }
+            ].map((stat, index) => (
+              <div key={index} className="text-center">
+                <div className="text-3xl font-bold text-primary-600 mb-2">{stat.number}</div>
+                <div className="text-gray-600">{stat.label}</div>
+              </div>
+            ))
+          ) : (
+            // Fallback stats if API fails
+            [
+              { number: '10,000+', label: 'Lives Impacted' },
+              { number: '50+', label: 'Communities Served' },
+              { number: '₹5M+', label: 'Total Funds Raised' }
+            ].map((stat, index) => (
+              <div key={index} className="text-center">
+                <div className="text-3xl font-bold text-primary-600 mb-2">{stat.number}</div>
+                <div className="text-gray-600">{stat.label}</div>
+              </div>
+            ))
+          )}
         </motion.div>
       </div>
 

@@ -246,10 +246,31 @@ export const projectRequestsAPI = {
   updateStatus: (id, statusData) => api.patch(`/project-requests/${id}/status`, statusData),
 };
 
+// Updated Donations API to match backend routes
+// In your apiService.js - ensure these endpoints exist
 export const donationsAPI = {
-  getAll: () => api.get('/donations'),
-  create: (data) => api.post('/donations', data),
-  getByUser: () => api.get('/donations/user'),
+  // Check payment gateway status
+  getStatus: () => api.get('/donations/status'),
+  
+  // Create donation order
+  createOrder: (orderData) => api.post('/donations/create-order', orderData),
+  
+  // Verify payment
+  verifyPayment: (paymentData) => api.post('/donations/verify-payment', paymentData),
+  
+  // Get user donation history
+  getUserDonations: (params = {}) => api.get('/donations/my-donations', { params }),
+  
+  // Get donation statistics - THIS IS CRITICAL
+  getStatistics: () => api.get('/donations/statistics'),
+  
+  // Get donation by ID
+  getById: (id) => api.get(`/donations/${id}`),
+  
+  // Get all donations (Admin only)
+  getAllDonations: (params = {}) => api.get('/donations/admin/all', { params }),
+  
+  // Get donation receipt
+  getReceipt: (donationId) => api.get(`/donations/${donationId}/receipt`),
 };
-
 export default api;

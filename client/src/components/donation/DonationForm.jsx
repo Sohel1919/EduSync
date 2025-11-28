@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   UserIcon, 
@@ -6,7 +6,9 @@ import {
   PhoneIcon,
   HeartIcon
 } from '@heroicons/react/24/outline';
-import RazorpayButton from './RazorpayButton';
+import RazorpayButton from './RazorpayButton.jsx';
+import { authAPI } from '../../services/apiService.js';
+import { toast } from 'react-hot-toast';
 
 const presetAmounts = [100, 500, 1000, 2500, 5000];
 const causes = [
@@ -27,6 +29,36 @@ export default function DonationForm({ onDonationSuccess }) {
     isAnonymous: false
   });
   const [isCustomAmount, setIsCustomAmount] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch user data if logged in
+    const fetchUser = async () => {
+      try {
+        const response = await authAPI.getProfile();
+        const userData = response.data;
+        setUser(userData);
+        // Pre-fill form with user data
+        setFormData(prev => ({
+          ...prev,
+          name: userData.name || '',
+          email: userData.email || '',
+          phone: userData.profile?.phone || ''
+        }));
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
+        // Don't show error toast if user is not logged in
+        if (error.response?.status !== 401) {
+          toast.error('Failed to load user information');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -67,9 +99,9 @@ export default function DonationForm({ onDonationSuccess }) {
       amount: '',
       customAmount: '',
       cause: 'general',
-      name: '',
-      email: '',
-      phone: '',
+      name: user?.name || '',
+      email: user?.email || '',
+      phone: user?.profile?.phone || '',
       isAnonymous: false
     });
     setIsCustomAmount(false);
@@ -77,10 +109,27 @@ export default function DonationForm({ onDonationSuccess }) {
 
   const handleError = (error) => {
     console.error('Donation error:', error);
+    toast.error(error.message || 'Donation failed. Please try again.');
   };
 
   const selectedCause = causes.find(c => c.id === formData.cause);
   const donationAmount = isCustomAmount ? parseInt(formData.customAmount) || 0 : parseInt(formData.amount) || 0;
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-3/4 mx-auto mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto mb-8"></div>
+          <div className="space-y-4">
+            <div className="h-12 bg-gray-200 rounded"></div>
+            <div className="h-12 bg-gray-200 rounded"></div>
+            <div className="h-12 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -190,7 +239,13 @@ export default function DonationForm({ onDonationSuccess }) {
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              disabled={!!user?.name}
             />
+            {user?.name && (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">From Profile</span>
+              </div>
+            )}
           </div>
 
           <div className="relative">
@@ -201,7 +256,13 @@ export default function DonationForm({ onDonationSuccess }) {
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              disabled={!!user?.email}
             />
+            {user?.email && (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">From Profile</span>
+              </div>
+            )}
           </div>
 
           <div className="relative">
@@ -242,6 +303,9 @@ export default function DonationForm({ onDonationSuccess }) {
             <div>
               <p className="text-gray-600">{selectedCause?.name}</p>
               <p className="text-2xl font-bold text-primary-600">₹{donationAmount}</p>
+              {user && user.role === 'donor' && (
+                <p className="text-sm text-green-600 mt-1">✓ Thank you for being a regular donor!</p>
+              )}
             </div>
             <div className="text-3xl">{selectedCause?.icon}</div>
           </div>
@@ -251,8 +315,14 @@ export default function DonationForm({ onDonationSuccess }) {
       {/* Donate Button */}
       <RazorpayButton
         amount={donationAmount}
-        cause={selectedCause?.name}
-        donorInfo={formData}
+        cause={formData.cause}
+        causeName={selectedCause?.name}
+        donorInfo={{
+          name: formData.isAnonymous ? '' : formData.name,
+          email: formData.isAnonymous ? '' : formData.email,
+          phone: formData.isAnonymous ? '' : formData.phone,
+          isAnonymous: formData.isAnonymous
+        }}
         onSuccess={handleSuccess}
         onError={handleError}
       />
