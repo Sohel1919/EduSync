@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 import User from '../models/user.model.js';
 
-// Create transporter
+// Create transporters
 const createTransporter = () => {
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
