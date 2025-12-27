@@ -5,30 +5,39 @@ import { StarIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24
 const testimonials = [
   {
     id: 1,
-    name: 'Emily Rodriguez',
-    role: 'Education Volunteer',
+    name: 'Dr. Priya Sharma',
+    role: 'Math Mentor & Professor',
     image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
-    content: 'Volunteering with CareSync has been life-changing. I\'ve helped 50+ children improve their reading skills and seen their confidence grow exponentially.',
-    rating: 5,
-    duration: '2 years'
-  },
-  {
-    id: 2,
-    name: 'James Wilson',
-    role: 'Healthcare Volunteer',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
-    content: 'The training and support provided are exceptional. I\'ve developed medical outreach programs that have served over 1,000 people in rural areas.',
-    rating: 5,
+    content: 'Mentoring rural students through EduSync has been incredibly rewarding. Seeing my students gain confidence in mathematics and secure admissions in STEM fields makes every hour worthwhile.',
+    rating: 4.8,
     duration: '3 years'
   },
   {
+    id: 2,
+    name: 'Rajesh Kumar',
+    role: 'Career Guidance Mentor',
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+    content: 'EduSync\'s structured mentorship program allowed me to guide 45 underprivileged students toward meaningful careers. The platform connects mentors with students who truly need guidance.',
+    rating: 4.6,
+    duration: '2 years'
+  },
+  {
     id: 3,
-    name: 'Sophie Martinez',
-    role: 'Women Empowerment Lead',
+    name: 'Ananya Patel',
+    role: 'Scholarship Advisor',
     image: 'https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
-    content: 'Seeing women gain financial independence through our programs is incredibly rewarding. CareSync provides the perfect platform to create real change.',
-    rating: 5,
+    content: 'Helping students secure over ₹50 lakhs in scholarships has been life-changing. EduSync provides the perfect framework to make education accessible to deserving students.',
+    rating: 4.9,
     duration: '1.5 years'
+  },
+  {
+    id: 4,
+    name: 'Michael Chen',
+    role: 'Digital Literacy Trainer',
+    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+    content: 'Teaching digital skills to rural students through EduSync has shown me the power of education to bridge gaps. Our students now confidently use technology for learning and growth.',
+    rating: 4.7,
+    duration: '2 years'
   }
 ];
 
@@ -53,9 +62,9 @@ export default function VolunteerTestimonials() {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          <h2 className="section-header">Volunteer Stories</h2>
+          <h2 className="section-header">Mentor Experiences</h2>
           <p className="section-subheader">
-            Hear from our dedicated volunteers about their experiences
+            Hear from our dedicated education mentors about their journey with EduSync
           </p>
         </motion.div>
 
@@ -76,9 +85,17 @@ export default function VolunteerTestimonials() {
                 />
                 <div className="flex-1">
                   <div className="flex items-center space-x-1 mb-2">
-                    {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
-                      <StarIcon key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                    {[...Array(5)].map((_, i) => (
+                      <StarIcon 
+                        key={i} 
+                        className={`h-5 w-5 ${
+                          i < Math.floor(testimonials[currentTestimonial].rating) 
+                            ? 'text-yellow-400 fill-current' 
+                            : 'text-gray-300'
+                        }`}
+                      />
                     ))}
+                    <span className="ml-2 text-sm text-gray-600">{testimonials[currentTestimonial].rating}</span>
                   </div>
                   <p className="text-lg text-gray-700 italic mb-4">
                     "{testimonials[currentTestimonial].content}"
@@ -88,7 +105,7 @@ export default function VolunteerTestimonials() {
                       {testimonials[currentTestimonial].name}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {testimonials[currentTestimonial].role} • {testimonials[currentTestimonial].duration}
+                      {testimonials[currentTestimonial].role} • {testimonials[currentTestimonial].duration} with EduSync
                     </div>
                   </div>
                 </div>

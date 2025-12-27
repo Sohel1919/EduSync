@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-
+import { image4 } from '../../assets/assets';
 export default function StorySection({ activeTab, setActiveTab }) {
   const tabs = [
     { id: 'mission', label: 'Our Mission' },
@@ -9,16 +9,16 @@ export default function StorySection({ activeTab, setActiveTab }) {
 
   const tabContent = {
     mission: {
-      title: 'Creating Lasting Change',
-      content: 'Founded in 2008, we began with a simple mission: to bring quality education to rural villages. Today, we\'ve grown into a comprehensive community development organization, but our core purpose remains unchanged - to empower people to break the cycle of poverty.'
+      title: 'Bridging Educational Gaps',
+      content: 'Founded in 2016, EduSync began with a simple mission: to provide equal educational opportunities to underprivileged and rural students. Today, we have evolved into a comprehensive educational support organization, delivering digital learning resources, scholarships, mentorship, and skill development programs to transform young lives through education.'
     },
     vision: {
-      title: 'A World of Equal Opportunity',
-      content: 'We envision communities where every child has access to education, every family has healthcare, and every woman has economic opportunities. Our programs are designed to create systemic change that lasts for generations.'
+      title: 'Education Without Barriers',
+      content: 'We envision a world where every child, regardless of their background or location, has access to quality education, digital learning tools, and mentorship opportunities. Our programs are designed to create lifelong learners who can break the cycle of poverty through education and become leaders in their communities.'
     },
     values: {
-      title: 'Guided by Compassion',
-      content: 'Integrity: We\'re accountable to our donors and the communities we serve.\nInnovation: We constantly seek better solutions to complex problems.\nInclusion: We believe everyone deserves dignity and opportunity.'
+      title: 'Guided by Educational Excellence',
+      content: 'Equity: We believe every student deserves equal access to quality education.\nInnovation: We leverage technology to create scalable learning solutions.\nEmpowerment: We equip students with knowledge, skills, and confidence to shape their futures.\nExcellence: We maintain the highest standards in all our educational programs and mentorship initiatives.'
     }
   };
 
@@ -39,9 +39,9 @@ export default function StorySection({ activeTab, setActiveTab }) {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          <h2 className="section-header">Our Story</h2>
+          <h2 className="section-header">Our Educational Journey</h2>
           <p className="section-subheader">
-            How a small group of volunteers grew into a movement
+            From a small tutoring initiative to a nationwide educational movement
           </p>
         </motion.div>
 
@@ -85,8 +85,8 @@ export default function StorySection({ activeTab, setActiveTab }) {
             <div className="hidden md:block relative">
               <img
                 className="absolute inset-0 h-full w-full object-cover"
-                src="https://images.unsplash.com/photo-1521791136064-7986c2920216?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
-                alt="Community volunteers"
+                src={image4}
+                alt="Students learning in classroom"
               />
             </div>
           </div>

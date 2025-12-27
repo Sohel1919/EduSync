@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { FaEye, FaEdit, FaTrash, FaMapMarkerAlt, FaPhone, FaEnvelope, FaCalendar, FaUsers } from 'react-icons/fa';
+import { FaEye, FaEdit, FaTrash, FaMapMarkerAlt, FaPhone, FaEnvelope, FaCalendar, FaUsers, FaClock } from 'react-icons/fa';
 
 const getStatusColor = (status) => {
   const colors = {
@@ -32,7 +32,7 @@ export default function VolunteerCard({ volunteer, index, onView, onEdit, onDele
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
-      className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow duration-200"
+      className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 group hover:border-primary-200"
     >
       <div className="flex items-start justify-between">
         {/* Left Section - Volunteer Info */}
@@ -40,17 +40,19 @@ export default function VolunteerCard({ volunteer, index, onView, onEdit, onDele
           <div className="flex items-start space-x-4">
             {/* Profile Image */}
             <div className="flex-shrink-0">
-              <img
-                src={volunteer.profileImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face'}
-                alt={volunteer.fullName}
-                className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
-              />
+              <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center group-hover:scale-105 transition-transform duration-200 border-2 border-primary-500 overflow-hidden">
+                <img
+                  src={volunteer.profileImage.url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face'}
+                  alt={volunteer.fullName}
+                  className="w-16 h-16 rounded-full object-cover border-2 border-white"
+                />
+              </div>
             </div>
 
             {/* Volunteer Details */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xl font-semibold text-gray-900 truncate">
+                <h3 className="text-xl font-semibold text-gray-900 group-hover:text-primary-700 transition-colors duration-200 truncate">
                   {volunteer.fullName}
                 </h3>
                 <div className="flex items-center space-x-2 ml-4">
@@ -66,19 +68,19 @@ export default function VolunteerCard({ volunteer, index, onView, onEdit, onDele
               {/* Contact Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                 <div className="flex items-center text-sm text-gray-600">
-                  <FaEnvelope className="flex-shrink-0 mr-2 text-gray-400" />
+                  <FaEnvelope className="flex-shrink-0 mr-2 text-primary-400" />
                   <span className="truncate">{volunteer.email}</span>
                 </div>
                 <div className="flex items-center text-sm text-gray-600">
-                  <FaPhone className="flex-shrink-0 mr-2 text-gray-400" />
+                  <FaPhone className="flex-shrink-0 mr-2 text-primary-400" />
                   <span>{volunteer.phone}</span>
                 </div>
                 <div className="flex items-center text-sm text-gray-600">
-                  <FaMapMarkerAlt className="flex-shrink-0 mr-2 text-gray-400" />
+                  <FaMapMarkerAlt className="flex-shrink-0 mr-2 text-primary-400" />
                   <span className="truncate">{volunteer.location}</span>
                 </div>
                 <div className="flex items-center text-sm text-gray-600">
-                  <FaCalendar className="flex-shrink-0 mr-2 text-gray-400" />
+                  <FaCalendar className="flex-shrink-0 mr-2 text-primary-400" />
                   <span>Joined {new Date(volunteer.joinDate).toLocaleDateString()}</span>
                 </div>
               </div>
@@ -91,12 +93,12 @@ export default function VolunteerCard({ volunteer, index, onView, onEdit, onDele
                   </p>
                   <div className="flex items-center space-x-4 text-sm text-gray-600">
                     <div className="flex items-center">
-                      <FaUsers className="mr-1 text-gray-400" />
-                      <span>{volunteer.eventsAttended || 0} events</span>
+                      <FaClock className="mr-1 text-primary-400" />
+                      <span>{volunteer.hoursCompleted || 0} hours</span>
                     </div>
                     <div className="flex items-center">
-                      <FaCalendar className="mr-1 text-gray-400" />
-                      <span>{volunteer.hoursCompleted || 0} hours</span>
+                      <FaUsers className="mr-1 text-primary-400" />
+                      <span>{volunteer.eventsAttended || 0} events</span>
                     </div>
                   </div>
                 </div>
@@ -111,7 +113,7 @@ export default function VolunteerCard({ volunteer, index, onView, onEdit, onDele
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => onView(volunteer)}
-            className="inline-flex items-center p-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors duration-200"
+            className="inline-flex items-center p-2 border border-primary-300 text-primary-700 bg-primary-50 rounded-xl hover:bg-primary-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200"
             title="View Details"
           >
             <FaEye className="h-4 w-4" />
@@ -120,7 +122,7 @@ export default function VolunteerCard({ volunteer, index, onView, onEdit, onDele
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => onEdit(volunteer)}
-            className="inline-flex items-center p-2 border border-transparent text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors duration-200"
+            className="inline-flex items-center p-2 border border-transparent text-white bg-gradient-to-r from-primary-600 to-secondary-600 rounded-xl hover:from-primary-700 hover:to-secondary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200"
             title="Edit Volunteer"
           >
             <FaEdit className="h-4 w-4" />
@@ -129,7 +131,7 @@ export default function VolunteerCard({ volunteer, index, onView, onEdit, onDele
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => onDelete(volunteer._id || volunteer.id)}
-            className="inline-flex items-center p-2 border border-transparent text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
+            className="inline-flex items-center p-2 border border-transparent text-white bg-gradient-to-r from-red-500 to-rose-600 rounded-xl hover:from-red-600 hover:to-rose-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
             title="Delete Volunteer"
           >
             <FaTrash className="h-4 w-4" />

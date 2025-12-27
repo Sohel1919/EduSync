@@ -11,14 +11,14 @@ import { projectsAPI } from '../../../services/apiService';
 import { showToast } from '../../../utils/toast';
 
 const categories = [
-  { value: 'education', label: 'Education' },
-  { value: 'healthcare', label: 'Healthcare' },
-  { value: 'empowerment', label: 'Empowerment' },
-  { value: 'environment', label: 'Environment' },
-  { value: 'disaster-relief', label: 'Disaster Relief' },
-  { value: 'animal-welfare', label: 'Animal Welfare' },
-  { value: 'elderly-care', label: 'Elderly Care' },
-  { value: 'child-development', label: 'Child Development' }
+  { value: 'digital-learning', label: 'Digital Learning' },
+  { value: 'scholarship', label: 'Scholarship Assistance' },
+  { value: 'mentorship', label: 'Mentorship Program' },
+  { value: 'skill-development', label: 'Skill Development' },
+  { value: 'school-infrastructure', label: 'School Infrastructure' },
+  { value: 'girl-education', label: 'Girl Education' },
+  { value: 'after-school', label: 'After School Program' },
+  { value: 'vocational-training', label: 'Vocational Training' }
 ];
 
 const initialFormData = {

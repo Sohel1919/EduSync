@@ -12,6 +12,7 @@ export default function RazorpayButton({
   onError 
 }) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -42,27 +43,24 @@ export default function RazorpayButton({
   };
 
   const handlePayment = async () => {
-    if (!amount || amount < 10) {
-      toast.error('Please enter a valid amount (minimum ₹10)');
+    if (!amount || amount < 100) {
+      toast.error('Please enter a valid amount (minimum ₹100)');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Check if payment gateway is configured
       const isGatewayReady = await checkPaymentGateway();
       if (!isGatewayReady) {
         throw new Error('Payment gateway is currently unavailable. Please try again later.');
       }
 
-      // Load Razorpay script
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) {
         throw new Error('Payment service failed to load. Please refresh the page and try again.');
       }
 
-      // Create order on backend
       const orderResponse = await donationsAPI.createOrder({
         amount,
         cause,
@@ -76,17 +74,20 @@ export default function RazorpayButton({
         throw new Error(orderData.message || 'Failed to create payment order');
       }
 
-      // Razorpay options
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID || orderData.key,
         amount: orderData.order.amount,
         currency: orderData.order.currency,
-        name: 'HopeBridge NGO',
-        description: `Donation for ${causeName}`,
+        name: 'EduSync - Education for All',
+        description: `Education donation for ${causeName}`,
         order_id: orderData.order.id,
         handler: async function (response) {
           try {
-            // Verify payment with backend
+            setIsProcessingPayment(true);
+            toast.loading('Verifying payment and generating receipt...', {
+              duration: 30000,
+            });
+
             const verificationResponse = await donationsAPI.verifyPayment({
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
@@ -99,20 +100,28 @@ export default function RazorpayButton({
             const verificationData = verificationResponse.data;
 
             if (verificationData.success) {
+              toast.dismiss();
+              toast.success('Payment verified successfully!');
+              
               onSuccess({
                 paymentId: response.razorpay_payment_id,
                 orderId: response.razorpay_order_id,
                 amount: amount,
                 cause: causeName,
                 donorInfo: donorInfo,
-                receipt_url: verificationData.donation.receipt_url
+                receipt_url: verificationData.donation.receipt_url,
+                receipt_generated: verificationData.donation.receipt_generated
               });
             } else {
               throw new Error(verificationData.message || 'Payment verification failed');
             }
           } catch (error) {
+            toast.dismiss();
             onError(error);
             toast.error('Payment verification failed. Please contact support.');
+          } finally {
+            setIsProcessingPayment(false);
+            setIsLoading(false);
           }
         },
         prefill: {
@@ -121,7 +130,7 @@ export default function RazorpayButton({
           contact: donorInfo.phone || ''
         },
         theme: {
-          color: '#667eea'
+          color: '#2563eb'
         },
         modal: {
           ondismiss: function() {
@@ -142,27 +151,43 @@ export default function RazorpayButton({
       console.error('Payment error:', error);
       onError(error);
       toast.error(error.message || 'Payment failed. Please try again.');
-    } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <motion.button
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      onClick={handlePayment}
-      disabled={isLoading || !amount || amount < 10}
-      className="w-full bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold py-4 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      {isLoading ? (
-        <div className="flex items-center justify-center">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-          Processing...
+    <>
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={handlePayment}
+        disabled={isLoading || !amount || amount < 100 || isProcessingPayment}
+        className="w-full bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold py-4 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isLoading || isProcessingPayment ? (
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+            {isProcessingPayment ? 'Processing...' : 'Loading...'}
+          </div>
+        ) : (
+          `Support Education - ₹${amount}`
+        )}
+      </motion.button>
+
+      {isProcessingPayment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600 mx-auto mb-4"></div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Processing Your Donation</h3>
+            <p className="text-gray-600 mb-4">
+              Please wait while we verify your payment and generate your receipt...
+            </p>
+            <div className="text-sm text-gray-500">
+              This usually takes 10-15 seconds
+            </div>
+          </div>
         </div>
-      ) : (
-        `Donate ₹${amount}`
       )}
-    </motion.button>
+    </>
   );
 }

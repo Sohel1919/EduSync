@@ -18,8 +18,8 @@ export default function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.8 }}
           >
-            <span className="block">Empowering Communities</span>
-            <span className="block text-primary-200">Transforming Lives</span>
+            <span className="block">Empowering Students</span>
+            <span className="block text-primary-200">Transforming Futures</span>
           </motion.h1>
           <motion.p 
             className="mt-6 max-w-lg mx-auto text-xl text-primary-100"
@@ -27,7 +27,7 @@ export default function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.8 }}
           >
-            Join our mission to create sustainable change through education, healthcare, and economic empowerment.
+            Bridging educational gaps for underprivileged and rural students through technology, mentorship, and scholarships.
           </motion.p>
           <motion.div 
             className="mt-10 flex justify-center space-x-4"
@@ -39,13 +39,13 @@ export default function HeroSection() {
               to="/donation"
               className="btn-primary"
             >
-              Donate Now
+              Support Education
             </Link>
             <Link
               to="/join-our-team"
               className="btn-outline border-white text-white hover:bg-white hover:text-primary-700"
             >
-              Join Our Team
+              Become a Mentor
             </Link>
           </motion.div>
         </div>

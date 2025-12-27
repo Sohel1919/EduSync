@@ -9,7 +9,7 @@ const donationSchema = new mongoose.Schema({
   amount: {
     type: Number,
     required: true,
-    min: 10
+    min: 100
   },
   currency: {
     type: String,
@@ -18,7 +18,7 @@ const donationSchema = new mongoose.Schema({
   cause: {
     type: String,
     required: true,
-    enum: ['education', 'healthcare', 'women', 'general']
+    enum: ['scholarship', 'digital-learning', 'study-material', 'girl-education']
   },
   causeName: {
     type: String,

@@ -19,8 +19,8 @@ export default function VolunteerHero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.8 }}
           >
-            <span className="block">Join Our Volunteer</span>
-            <span className="block text-primary-200">Community</span>
+            <span className="block">Empower Through</span>
+            <span className="block text-primary-200">Education Mentorship</span>
           </motion.h1>
           <motion.p 
             className="mt-6 max-w-2xl mx-auto text-xl text-primary-100"
@@ -28,8 +28,8 @@ export default function VolunteerHero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.8 }}
           >
-            Make a difference in your community by volunteering with CareSync. 
-            Share your skills, time, and compassion to transform lives.
+            Join EduSync in bridging educational gaps for underprivileged students. 
+            Share your knowledge, guide young minds, and help build brighter futures through quality education.
           </motion.p>
           <motion.div 
             className="mt-10 flex justify-center space-x-4"
@@ -41,13 +41,13 @@ export default function VolunteerHero() {
               to="/auth/signup?role=volunteer"
               className="btn-primary"
             >
-              Become a Volunteer
+              Become an Education Mentor
             </Link>
             <Link
               to="/volunteer/dashboard"
               className="btn-outline border-white text-white hover:bg-white hover:text-primary-700"
             >
-              Volunteer Portal
+              Mentor Portal
             </Link>
           </motion.div>
         </motion.div>
@@ -64,8 +64,8 @@ export default function VolunteerHero() {
               className="text-white"
             >
               <UsersIcon className="h-8 w-8 mx-auto mb-2" />
-              <div className="text-2xl font-bold">500+</div>
-              <div className="text-primary-100">Active Volunteers</div>
+              <div className="text-2xl font-bold">450+</div>
+              <div className="text-primary-100">Active Education Mentors</div>
             </motion.div>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -74,8 +74,8 @@ export default function VolunteerHero() {
               className="text-white"
             >
               <HeartIcon className="h-8 w-8 mx-auto mb-2" />
-              <div className="text-2xl font-bold">10,000+</div>
-              <div className="text-primary-100">Hours Contributed</div>
+              <div className="text-2xl font-bold">15,000+</div>
+              <div className="text-primary-100">Mentoring Hours</div>
             </motion.div>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -84,8 +84,8 @@ export default function VolunteerHero() {
               className="text-white"
             >
               <ClockIcon className="h-8 w-8 mx-auto mb-2" />
-              <div className="text-2xl font-bold">50+</div>
-              <div className="text-primary-100">Projects Completed</div>
+              <div className="text-2xl font-bold">3,200+</div>
+              <div className="text-primary-100">Students Supported</div>
             </motion.div>
           </div>
         </div>

@@ -9,19 +9,19 @@ export default function MissionSection({ activeTab, setActiveTab }) {
 
   const tabContent = {
     mission: {
-      title: 'Creating Lasting Change Through Action',
-      content: 'We are committed to empowering underserved communities by providing access to quality education, healthcare, and economic opportunities. Our mission is to break the cycle of poverty through sustainable, community-led solutions that create real, measurable impact.',
-      features: ['Education Access', 'Healthcare Equity', 'Economic Empowerment']
+      title: 'Bridging Educational Gaps Through Innovation',
+      content: 'We are committed to empowering underprivileged and rural students by providing free quality education, digital learning resources, mentorship programs, and scholarship assistance. Our mission is to break the cycle of poverty through education and create equal opportunities for every child.',
+      features: ['Free Education', 'Digital Learning', 'Scholarship Support']
     },
     vision: {
-      title: 'A World of Equal Opportunity for All',
-      content: 'We envision communities where every child has access to education, every family has quality healthcare, and every individual has the opportunity to achieve economic independence. A world where geographic location and socioeconomic status no longer determine one\'s future.',
-      features: ['Equal Access', 'Sustainable Growth', 'Community Leadership']
+      title: 'A World Where Every Child Learns',
+      content: 'We envision communities where every child has access to quality education regardless of their socioeconomic background. A future where geographic location and financial constraints no longer determine a child\'s educational journey and career prospects.',
+      features: ['Equal Access', 'Quality Education', 'Bright Futures']
     },
     values: {
-      title: 'Guided by Integrity and Compassion',
-      content: 'Our work is rooted in core values that guide every decision and action. We believe in transparency, innovation, and the inherent dignity of every person we serve. These principles are the foundation of our organization.',
-      features: ['Integrity', 'Innovation', 'Compassion', 'Transparency']
+      title: 'Guided by Educational Excellence and Compassion',
+      content: 'Our work is rooted in core values that prioritize student success, innovation in education, and the transformative power of learning. We believe in transparency, dedication, and the limitless potential of every student we serve.',
+      features: ['Excellence', 'Innovation', 'Compassion', 'Integrity']
     }
   };
 
@@ -40,10 +40,10 @@ export default function MissionSection({ activeTab, setActiveTab }) {
           viewport={{ once: true }}
         >
           <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            What Drives Us
+            What Drives EduSync
           </h2>
           <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-            Our foundation is built on clear principles that guide our work and shape our impact
+            Our foundation is built on educational principles that guide our mission to empower students
           </p>
         </motion.div>
 

@@ -22,27 +22,27 @@ export default function VolunteerPage() {
           const transformedVolunteers = response.data.volunteers.map(volunteer => ({
             id: volunteer._id,
             name: volunteer.fullName,
-            role: volunteer.skills?.[0] ? `${volunteer.skills[0]} Specialist` : 'Volunteer',
-            image: volunteer.profileImage?.url || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
-            location: volunteer.location || 'Location not specified',
-            experience: `${Math.floor(Math.random() * 10) + 1} years experience`, // You might want to add this field to your schema
-            expertise: volunteer.skills || ['General Assistance'],
+            role: volunteer.skills?.[0] ? `${volunteer.skills[0]} Mentor` : 'Education Volunteer',
+            image: volunteer.profileImage?.url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+            location: volunteer.location || 'Multiple Locations',
+            experience: `${Math.floor(Math.random() * 8) + 2} years experience`,
+            expertise: volunteer.skills || ['Academic Support'],
             availability: volunteer.availability ? `${volunteer.availability} availability` : 'Flexible scheduling',
-            responseTime: '2-4 hours', // You might want to add this field to your schema
-            rating: 4.5 + (Math.random() * 0.5), // Random rating between 4.5-5.0
-            problemsSolved: Math.floor(Math.random() * 200) + 50, // Random number
-            successRate: `${Math.floor(Math.random() * 10) + 90}%`, // Random success rate
-            bio: volunteer.bio || `Experienced ${volunteer.skills?.[0] || 'volunteer'} dedicated to helping others.`,
-            specialties: volunteer.skills?.map(skill => `${skill} services`) || ['General volunteer services']
+            responseTime: '1-3 days',
+            rating: parseFloat((3.5 + (Math.random() * 1.5)).toFixed(1)), // Rating between 3.5-5.0 with one decimal
+            studentsMentored: Math.floor(Math.random() * 150) + 20,
+            successRate: `${Math.floor(Math.random() * 15) + 80}%`,
+            bio: volunteer.bio || `Dedicated education professional passionate about helping underprivileged students achieve their academic goals.`,
+            specialties: volunteer.skills?.map(skill => `${skill} mentorship`) || ['Academic guidance']
           }));
           
           setVolunteers(transformedVolunteers);
         } else {
-          setError('Failed to fetch volunteers');
+          setError('Failed to fetch education mentors');
         }
       } catch (err) {
         console.error('Error fetching volunteers:', err);
-        setError('Error loading volunteers. Please try again later.');
+        setError('Error loading education mentors. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -66,7 +66,7 @@ export default function VolunteerPage() {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading volunteers...</p>
+          <p className="mt-4 text-gray-600">Loading education mentors...</p>
         </div>
       </div>
     );
@@ -77,7 +77,7 @@ export default function VolunteerPage() {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 text-4xl mb-4">⚠️</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Volunteers</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Mentors</h3>
           <p className="text-gray-500">{error}</p>
           <button 
             onClick={() => window.location.reload()}
@@ -96,13 +96,13 @@ export default function VolunteerPage() {
         {/* Page Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Professional Volunteers
+            Education Mentors & Volunteers
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Connect with experienced professionals ready to help you solve challenges and achieve your goals.
+            Connect with experienced educators and professionals dedicated to supporting underprivileged students through mentorship and academic guidance.
           </p>
           <div className="mt-4 text-sm text-gray-500">
-            {volunteers.length} volunteers available
+            {volunteers.length} education mentors available
           </div>
         </div>
 

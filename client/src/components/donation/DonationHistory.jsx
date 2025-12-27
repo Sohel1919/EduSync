@@ -1,19 +1,21 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  CheckCircleIcon, 
-  XCircleIcon, 
-  ClockIcon,
-  DocumentTextIcon
-} from '@heroicons/react/24/outline';
+  CheckCircle2, 
+  XCircle, 
+  Clock,
+  FileText,
+  Download,
+  RefreshCw
+} from 'lucide-react';
 import { donationsAPI } from '../../services/apiService.js';
 import { toast } from 'react-hot-toast';
 
 const statusConfig = {
-  completed: { icon: CheckCircleIcon, color: 'text-green-600', bgColor: 'bg-green-100' },
-  failed: { icon: XCircleIcon, color: 'text-red-600', bgColor: 'bg-red-100' },
-  pending: { icon: ClockIcon, color: 'text-yellow-600', bgColor: 'bg-yellow-100' },
-  cancelled: { icon: XCircleIcon, color: 'text-gray-600', bgColor: 'bg-gray-100' }
+  completed: { icon: CheckCircle2, color: 'text-green-600', bgColor: 'bg-green-100' },
+  failed: { icon: XCircle, color: 'text-red-600', bgColor: 'bg-red-100' },
+  pending: { icon: Clock, color: 'text-yellow-600', bgColor: 'bg-yellow-100' },
+  cancelled: { icon: XCircle, color: 'text-gray-600', bgColor: 'bg-gray-100' }
 };
 
 export default function DonationHistory() {
@@ -110,13 +112,14 @@ export default function DonationHistory() {
         className="bg-white rounded-2xl shadow-xl p-8"
       >
         <div className="text-center py-12">
-          <DocumentTextIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No Donations Yet</h3>
-          <p className="text-gray-500 mb-6">Your donation history will appear here once you make your first donation.</p>
+          <p className="text-gray-500 mb-6">Your donation history will appear here once you make your first contribution to student education.</p>
           <button
-            onClick={() => window.location.reload()}
-            className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+            onClick={() => fetchDonationHistory()}
+            className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors flex items-center mx-auto"
           >
+            <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </button>
         </div>
@@ -133,11 +136,11 @@ export default function DonationHistory() {
     >
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Donation History</h2>
-          <p className="text-gray-600 mt-1">Your generous contributions to HopeBridge</p>
+          <h2 className="text-2xl font-bold text-gray-900">Education Support History</h2>
+          <p className="text-gray-600 mt-1">Your generous contributions to EduSync</p>
         </div>
         <div className="text-right">
-          <p className="text-sm text-gray-500">Total Donated</p>
+          <p className="text-sm text-gray-500">Total Impact</p>
           <p className="text-xl font-bold text-primary-600">
             {formatAmount(pagination.totalAmount)}
           </p>
@@ -146,7 +149,7 @@ export default function DonationHistory() {
 
       <div className="space-y-4">
         {donations.map((donation, index) => {
-          const StatusIcon = statusConfig[donation.status]?.icon || ClockIcon;
+          const StatusIcon = statusConfig[donation.status]?.icon || Clock;
           const statusColor = statusConfig[donation.status]?.color || 'text-gray-600';
           const statusBgColor = statusConfig[donation.status]?.bgColor || 'bg-gray-100';
 
@@ -195,7 +198,7 @@ export default function DonationHistory() {
                     className="text-primary-600 hover:text-primary-700 transition-colors"
                     title="Download Receipt"
                   >
-                    <DocumentTextIcon className="h-5 w-5" />
+                    <Download className="h-5 w-5" />
                   </button>
                 )}
               </div>
@@ -226,7 +229,7 @@ export default function DonationHistory() {
       {/* Statistics */}
       <div className="mt-8 grid grid-cols-3 gap-4 pt-6 border-t border-gray-200">
         <div className="text-center">
-          <p className="text-2xl font-bold text-primary-600">
+          <p className="text-2xl font-bold text-green-600">
             {donations.filter(d => d.status === 'completed').length}
           </p>
           <p className="text-sm text-gray-600">Successful</p>
@@ -235,13 +238,13 @@ export default function DonationHistory() {
           <p className="text-2xl font-bold text-gray-600">
             {donations.length}
           </p>
-          <p className="text-sm text-gray-600">Total Donations</p>
+          <p className="text-sm text-gray-600">Total Contributions</p>
         </div>
         <div className="text-center">
-          <p className="text-2xl font-bold text-green-600">
+          <p className="text-2xl font-bold text-primary-600">
             {formatAmount(pagination.totalAmount)}
           </p>
-          <p className="text-sm text-gray-600">Total Impact</p>
+          <p className="text-sm text-gray-600">Total Educational Impact</p>
         </div>
       </div>
     </motion.div>

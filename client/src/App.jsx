@@ -20,14 +20,14 @@ import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import UnauthorizedPage from './pages/public/UnauthorizedPage';
 import ProjectsPage from './pages/public/ProjectsPage';
 import VolunteerPage from './pages/public/VolunteerPage';
-import BeneficiariesPage from './pages/public/BeneficiariesPage';
 import BeneficiaryApplicationPage from './pages/public/BeneficiaryApplicationPage';
 import Loader from './components/common/Loader';
+import VolunteerApplicationPage from './pages/public/VolunteerApplicationPage';
 
 // Private pages (require authentication, any role)
 import DonationPage from './pages/private/DonationPage';
 import NotificationsPage from './pages/private/NotificationsPage';
-
+import Profile from './pages/user/Profile';
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProjects from './pages/admin/AdminProjects';
@@ -36,13 +36,13 @@ import AdminDonations from './pages/admin/AdminDonations';
 import AdminProjectDonations from './pages/admin/AdminProjectDonations';
 import AdminProjectRequests from './pages/admin/AdminProjectRequests';
 import AdminBeneficiaryApplication from './pages/admin/AdminBeneficiaryApplication';
-import AdminSettings from './pages/admin/AdminSettings';
+import VolunteerApplicationsAdmin from './pages/admin/VolunteerApplicationsAdmin';
+import VolunteerApplicationDetails from './pages/admin/VolunteerApplicationDetails';
 
 // Volunteer pages
 import VolunteerDashboardPage from './pages/volunteer/VolunteerDashboardPage';
 import Projects from './pages/volunteer/Projects';
 import VolunteerBeneficiaryApplication from './pages/volunteer/VolunteerBeneficiaryApplication';
-import Profile from './pages/volunteer/Profile';
 import Attendance from './pages/volunteer/Attendance';
 
 // Donor pages
@@ -51,11 +51,10 @@ import Donate from './pages/donor/Donate';
 import History from './pages/donor/History';
 import DonorProfile from './pages/donor/Profile';
 
-// User pages
-import UserDashboard from './pages/user/UserDashboard';
-import UserProjects from './pages/user/Projects';
-import UserEvents from './pages/user/Events';
-import UserProfile from './pages/user/Profile';
+// Beneficiary pages
+import BeneficiaryDashboard from './pages/beneficiary/BeneficiaryDashboard';
+import BeneficiaryProjects from './pages/beneficiary/BeneficiaryProjects';
+
 
 // Components
 import ProtectedRoute from './routes/ProtectedRoute';
@@ -121,7 +120,9 @@ const Layout = ({ children }) => {
     '/admin',
     '/volunteer',
     '/donor',
-    '/user'
+    '/user',
+    '/beneficiary/dashboard',
+    '/beneficiary/projects'
   ];
 
   const shouldShowNavbar = !hideNavbarRoutes.some(route => 
@@ -151,8 +152,7 @@ const adminNavigation = [
   { name: 'Beneficiary Application', href: '/admin/beneficiary-application', icon: UserIcon },
   { name: 'Volunteers', href: '/admin/volunteers', icon: UserGroupIcon },
   { name: 'Donations', href: '/admin/donations', icon: CurrencyDollarIcon },
-  { name: 'Project Donations', href: '/admin/project-donations', icon: ChartBarIcon },
-  { name: 'Settings', href: '/admin/settings', icon: Cog6ToothIcon },
+  { name: 'Volunteer Application', href: '/admin/volunteer-applications', icon: UserIcon}
 ];
 
 const volunteerNavigation = [
@@ -160,7 +160,6 @@ const volunteerNavigation = [
   { name: 'Projects', href: '/volunteer/projects', icon: CheckCircleIcon },
   { name: 'Beneficiary Application', href: '/volunteer/beneficiary-application', icon: UserIcon },
   { name: 'Attendance', href: '/volunteer/attendance', icon: CalendarIcon },
-  { name: 'Profile', href: '/volunteer/profile', icon: UserGroupIcon },
 ];
 
 const donorNavigation = [
@@ -170,18 +169,9 @@ const donorNavigation = [
   { name: 'Profile', href: '/donor/profile', icon: UserGroupIcon },
 ];
 
-const userNavigation = [
-  { name: 'Dashboard', href: '/user/dashboard', icon: HomeIcon },
-  { name: 'Projects', href: '/user/projects', icon: FolderIcon },
-  { name: 'Events', href: '/user/events', icon: CalendarIcon },
-  { name: 'Profile', href: '/user/profile', icon: UserGroupIcon },
-];
-
 const beneficiaryNavigation = [
-  { name: 'Dashboard', href: '/user/dashboard', icon: HomeIcon },
-  { name: 'Projects', href: '/user/projects', icon: FolderIcon },
-  { name: 'Events', href: '/user/events', icon: CalendarIcon },
-  { name: 'Profile', href: '/user/profile', icon: UserGroupIcon },
+  { name: 'Dashboard', href: '/beneficiary/dashboard', icon: HomeIcon },
+  { name: 'Projects', href: '/beneficiary/projects', icon: FolderIcon },
 ];
 
 function App() {
@@ -203,9 +193,9 @@ function App() {
                 <Route path="/unauthorized" element={<UnauthorizedPage />} />
                 <Route path="/projects" element={<ProjectsPage />} />
                 <Route path="/volunteer" element={<VolunteerPage />} />
-                <Route path="/beneficiaries" element={<BeneficiariesPage />} />
                 <Route path="/loader" element={<Loader />} />
                 <Route path="/projects/:projectId/apply-beneficiary" element={<BeneficiaryApplicationPage />} />
+                <Route path="/join-our-team" element={<VolunteerApplicationPage />} />
                 
                 {/* Private Routes - Require authentication (any role) */}
                 <Route 
@@ -224,6 +214,14 @@ function App() {
                     </ProtectedRoute>
                   } 
                 />
+                <Route 
+                  path="/user/profile" 
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } 
+                />
                 
                 {/* Admin Routes with DashboardLayout */}
                 <Route 
@@ -234,7 +232,7 @@ function App() {
                         <DashboardLayout 
                           userRole="admin"
                           userName="Admin User"
-                          userEmail="admin@caresync.org"
+                          userEmail="admin@Edusync.org"
                           navigationItems={adminNavigation}
                           dashboardTitle="Admin Dashboard"
                           stats={[
@@ -255,7 +253,8 @@ function App() {
                   <Route path="volunteers" element={<AdminVolunteers />} />
                   <Route path="donations" element={<AdminDonations />} />
                   <Route path="project-donations" element={<AdminProjectDonations />} />
-                  <Route path="settings" element={<AdminSettings />} />
+                  <Route path="volunteer-applications" element={<VolunteerApplicationsAdmin />} />
+                  <Route path="volunteer-applications/:id" element={<VolunteerApplicationDetails />} />
                 </Route>
                 
                 {/* Volunteer Routes with DashboardLayout */}
@@ -285,7 +284,6 @@ function App() {
                   <Route path="projects" element={<Projects />} />
                   <Route path="beneficiary-application" element={<VolunteerBeneficiaryApplication />} />
                   <Route path="attendance" element={<Attendance />} />
-                  <Route path="profile" element={<Profile />} />
                 </Route>
                 
                 {/* Donor Routes with DashboardLayout */}
@@ -317,33 +315,31 @@ function App() {
                   <Route path="profile" element={<DonorProfile />} />
                 </Route>
                 
-                {/* User/Beneficiary Routes with DashboardLayout */}
+                {/* Beneficiary Routes with DashboardLayout */}
                 <Route 
-                  path="/user/*" 
+                  path="/beneficiary/*" 
                   element={
                     <ProtectedRoute>
-                      <RoleBasedRoute allowedRoles={['user', 'beneficiary', 'admin']}>
+                      <RoleBasedRoute allowedRoles={['beneficiary', 'admin']}>
                         <DashboardLayout 
-                          userRole="user"
-                          userName="User"
-                          userEmail="user@caresync.org"
-                          navigationItems={userNavigation}
-                          dashboardTitle="User Dashboard"
+                          userRole="beneficiary"
+                          userName="Beneficiary User"
+                          userEmail="beneficiary@caresync.org"
+                          navigationItems={beneficiaryNavigation}
+                          dashboardTitle="Beneficiary Dashboard"
                           stats={[
                             { label: 'Active Applications', value: '2' },
                             { label: 'Approved Projects', value: '1' },
                             { label: 'Support Received', value: '3' }
                           ]}
-                          logoHref="/user/dashboard"
+                          logoHref="/beneficiary/dashboard"
                         />
                       </RoleBasedRoute>
                     </ProtectedRoute>
                   } 
                 >
-                  <Route path="dashboard" element={<UserDashboard />} />
-                  <Route path="projects" element={<UserProjects />} />
-                  <Route path="events" element={<UserEvents />} />
-                  <Route path="profile" element={<UserProfile />} />
+                  <Route path="dashboard" element={<BeneficiaryDashboard />} />
+                  <Route path="projects" element={<BeneficiaryProjects />} />
                 </Route>
                 
                 {/* 404 Catch All */}

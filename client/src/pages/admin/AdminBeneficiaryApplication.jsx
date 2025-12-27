@@ -11,7 +11,8 @@ import {
   UserIcon,
   MapPinIcon,
   PhoneIcon,
-  EnvelopeIcon
+  EnvelopeIcon,
+  ArrowPathIcon
 } from '@heroicons/react/24/outline';
 import { 
   FaUsers, 
@@ -139,6 +140,48 @@ export default function AdminBeneficiaryApplication() {
     return application.projectId || 'Unknown ID';
   };
 
+  // Update local state after action
+  const updateApplicationStatus = (applicationId, newStatus, reviewNotes = '') => {
+    setApplications(prev => 
+      prev.map(app => 
+        app._id === applicationId 
+          ? { 
+              ...app, 
+              status: newStatus,
+              reviewNotes: reviewNotes || app.reviewNotes,
+              updatedAt: new Date().toISOString(),
+              reviewedAt: new Date().toISOString()
+            }
+          : app
+      )
+    );
+    
+    setFilteredApplications(prev => 
+      prev.map(app => 
+        app._id === applicationId 
+          ? { 
+              ...app, 
+              status: newStatus,
+              reviewNotes: reviewNotes || app.reviewNotes,
+              updatedAt: new Date().toISOString(),
+              reviewedAt: new Date().toISOString()
+            }
+          : app
+      )
+    );
+    
+    // Update selected application if it's currently being viewed
+    if (selectedApplication && selectedApplication._id === applicationId) {
+      setSelectedApplication(prev => ({
+        ...prev,
+        status: newStatus,
+        reviewNotes: reviewNotes || prev.reviewNotes,
+        updatedAt: new Date().toISOString(),
+        reviewedAt: new Date().toISOString()
+      }));
+    }
+  };
+
   // Handle approve application
   const handleApprove = async (applicationId) => {
     try {
@@ -149,14 +192,7 @@ export default function AdminBeneficiaryApplication() {
       });
       
       if (response.data && response.data.success) {
-        setApplications(prev => 
-          prev.map(app => 
-            app._id === applicationId 
-              ? { ...app, status: 'approved' }
-              : app
-          )
-        );
-        
+        updateApplicationStatus(applicationId, 'approved');
         showToast.success('Application approved successfully!');
       } else {
         throw new Error(response.data?.message || 'Failed to approve application');
@@ -180,18 +216,7 @@ export default function AdminBeneficiaryApplication() {
       });
       
       if (response.data && response.data.success) {
-        setApplications(prev => 
-          prev.map(app => 
-            app._id === applicationId 
-              ? { 
-                  ...app, 
-                  status: 'rejected',
-                  reviewNotes: reason 
-                }
-              : app
-          )
-        );
-        
+        updateApplicationStatus(applicationId, 'rejected', reason);
         showToast.success('Application rejected successfully!');
       } else {
         throw new Error(response.data?.message || 'Failed to reject application');
@@ -218,18 +243,7 @@ export default function AdminBeneficiaryApplication() {
       });
       
       if (response.data && response.data.success) {
-        setApplications(prev => 
-          prev.map(app => 
-            app._id === applicationId 
-              ? { 
-                  ...app, 
-                  status: status,
-                  reviewNotes: notes 
-                }
-              : app
-          )
-        );
-        
+        updateApplicationStatus(applicationId, status, notes);
         showToast.success(`Application ${status} successfully!`);
       } else {
         throw new Error(response.data?.message || 'Failed to update application status');
@@ -623,7 +637,7 @@ export default function AdminBeneficiaryApplication() {
             { 
               name: 'Under Review', 
               value: stats.underReview, 
-              icon: EyeIcon, 
+              icon: ArrowPathIcon, 
               color: 'from-blue-500 to-cyan-600',
               bgColor: 'bg-blue-50'
             },
@@ -891,7 +905,7 @@ export default function AdminBeneficiaryApplication() {
                                 className="inline-flex items-center p-2 border border-blue-300 text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 disabled:opacity-50"
                                 title="Mark Under Review"
                               >
-                                <EyeIcon className="h-4 w-4" />
+                                <ArrowPathIcon className="h-4 w-4" />
                               </motion.button>
                               <motion.button
                                 whileHover={{ scale: 1.05 }}

@@ -2,28 +2,28 @@ import { motion } from 'framer-motion';
 
 const team = [
   {
-    name: 'Dr. Sarah Chen',
+    name: 'Dr. Priya Sharma',
     role: 'Executive Director',
     image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
-    bio: '15+ years in non-profit leadership with expertise in international development and community empowerment.',
+    bio: '15+ years in educational leadership with expertise in rural education development and digital learning initiatives.',
   },
   {
-    name: 'Michael Rodriguez',
+    name: 'Rahul Verma',
     role: 'Program Director',
     image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
-    bio: 'Specialized in designing and implementing scalable education and healthcare programs.',
+    bio: 'Specialized in designing scalable education programs, scholarship systems, and community outreach strategies.',
   },
   {
-    name: 'Aisha Johnson',
+    name: 'Anjali Patel',
     role: 'Operations Director',
     image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
-    bio: 'Expert in organizational development, volunteer management, and operational efficiency.',
+    bio: 'Expert in educational operations, volunteer coordination, and implementing digital learning infrastructure.',
   },
   {
-    name: 'David Park',
+    name: 'Kiran Desai',
     role: 'Technology Lead',
     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
-    bio: 'Building digital solutions to enhance program delivery and impact measurement.',
+    bio: 'Building digital education platforms and e-learning solutions to enhance remote learning accessibility.',
   }
 ];
 
@@ -39,10 +39,10 @@ export default function TeamSection() {
           viewport={{ once: true }}
         >
           <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            Meet Our Leadership
+            Meet Our Education Leaders
           </h2>
           <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-            Passionate professionals dedicated to driving meaningful change in communities worldwide
+            Passionate educators and professionals dedicated to transforming student futures through innovative learning solutions
           </p>
         </motion.div>
 

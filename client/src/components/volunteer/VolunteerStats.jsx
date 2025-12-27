@@ -9,27 +9,27 @@ import {
 const stats = [
   {
     icon: <UserGroupIcon className="h-8 w-8 text-white" />,
-    value: '500+',
-    label: 'Active Volunteers',
-    description: 'Across 50+ communities'
+    value: '450+',
+    label: 'Education Mentors',
+    description: 'Dedicated professionals nationwide'
   },
   {
     icon: <ClockIcon className="h-8 w-8 text-white" />,
-    value: '10,000+',
-    label: 'Hours Contributed',
-    description: 'In the last year alone'
+    value: '15,000+',
+    label: 'Mentoring Hours',
+    description: 'Volunteered in the last year'
   },
   {
     icon: <HeartIcon className="h-8 w-8 text-white" />,
-    value: '25,000+',
-    label: 'Lives Impacted',
-    description: 'Through various programs'
+    value: '3,200+',
+    label: 'Students Impacted',
+    description: 'Through mentorship programs'
   },
   {
     icon: <MapPinIcon className="h-8 w-8 text-white" />,
-    value: '15',
-    label: 'Cities Covered',
-    description: 'Nationwide presence'
+    value: '25',
+    label: 'Rural Communities',
+    description: 'Educational support provided'
   }
 ];
 

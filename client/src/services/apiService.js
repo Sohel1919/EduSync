@@ -138,6 +138,97 @@ export const volunteersAPI = {
   getAdminVolunteers: (params = {}) => api.get('/volunteers', { params }),
 };
 
+// Volunteer Applications API - NEW SECTION
+export const volunteerApplicationsAPI = {
+  // Submit new volunteer application with file upload
+  create: (formData) => {
+    return api.post('/volunteer-applications/apply', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 60000, // 60 seconds for file uploads
+    });
+  },
+  
+  // Get all applications (Admin only)
+  getAll: (params = {}) => {
+    const queryParams = new URLSearchParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+        queryParams.append(key, params[key]);
+      }
+    });
+    return api.get(`/volunteer-applications?${queryParams.toString()}`);
+  },
+  
+  // Get application by ID
+  getById: (id) => api.get(`/volunteer-applications/${id}`),
+  
+  // Get user's own applications
+  getMyApplications: () => api.get('/volunteer-applications/my-applications'),
+  
+  // Update application status (Admin only)
+  updateStatus: (id, data) => api.patch(`/volunteer-applications/${id}/status`, data),
+  
+  // Update interview details (Admin only)
+  updateInterview: (id, data) => api.patch(`/volunteer-applications/${id}/interview`, data),
+  
+  // Add note to application (Admin only)
+  addNote: (id, note) => api.post(`/volunteer-applications/${id}/notes`, { note }),
+  
+  // Get application statistics (Admin only)
+  getStats: () => api.get('/volunteer-applications/stats/overview'),
+  
+  // Get dashboard statistics (Admin only)
+  getDashboardStats: () => api.get('/volunteer-applications/stats/dashboard'),
+  
+  // Export applications (Admin only)
+  exportApplications: (params = {}) => {
+    const queryParams = new URLSearchParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== undefined && params[key] !== null) {
+        queryParams.append(key, params[key]);
+      }
+    });
+    return api.get(`/volunteer-applications/export/applications?${queryParams.toString()}`);
+  },
+  
+  // Delete application (Admin only)
+  delete: (id, data = {}) => api.delete(`/volunteer-applications/${id}`, { data }),
+  
+  // Convenience methods for specific actions
+  scheduleInterview: (id, interviewData) => 
+    api.patch(`/volunteer-applications/${id}/status`, {
+      status: 'interview-scheduled',
+      interviewDetails: interviewData
+    }),
+  
+  approveApplication: (id, notes = '') => 
+    api.patch(`/volunteer-applications/${id}/status`, {
+      status: 'approved',
+      notes
+    }),
+  
+  rejectApplication: (id, rejectionReason = '', notes = '') => 
+    api.patch(`/volunteer-applications/${id}/status`, {
+      status: 'rejected',
+      rejectionReason,
+      notes
+    }),
+  
+  shortlistApplication: (id, notes = '') => 
+    api.patch(`/volunteer-applications/${id}/status`, {
+      status: 'shortlisted',
+      notes
+    }),
+  
+  markUnderReview: (id, notes = '') => 
+    api.patch(`/volunteer-applications/${id}/status`, {
+      status: 'under-review',
+      notes
+    })
+};
+
 // Beneficiaries API
 export const beneficiariesAPI = {
   // Create beneficiary application with file upload
@@ -149,6 +240,19 @@ export const beneficiariesAPI = {
       },
       timeout: 60000, // 60 seconds for file uploads
     });
+  },
+  
+  // BENEFICIARY DASHBOARD ENDPOINTS (NEW)
+  getDashboard: () => api.get('/beneficiaries/dashboard'),
+  getDashboardStats: () => api.get('/beneficiaries/dashboard/stats'),
+  getDashboardProjects: (params = {}) => {
+    const queryParams = new URLSearchParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== undefined && params[key] !== null) {
+        queryParams.append(key, params[key]);
+      }
+    });
+    return api.get(`/beneficiaries/dashboard/projects?${queryParams.toString()}`);
   },
   
   // Get user's beneficiary applications
@@ -247,7 +351,6 @@ export const projectRequestsAPI = {
 };
 
 // Updated Donations API to match backend routes
-// In your apiService.js - ensure these endpoints exist
 export const donationsAPI = {
   // Check payment gateway status
   getStatus: () => api.get('/donations/status'),
@@ -272,5 +375,31 @@ export const donationsAPI = {
   
   // Get donation receipt
   getReceipt: (donationId) => api.get(`/donations/${donationId}/receipt`),
+
+  getDonorDashboard: () => api.get('/donor-dashboard'),
+  
+  // Get donor statistics for stats cards
+  getDonorStats: () => api.get('/donor-dashboard/stats'),
+  
+  // Get donor's donations with pagination
+  getDonorDonations: (params = {}) => api.get('/donor-dashboard/donations', { params }),
+  
+  // Get donor's impact data
+  getDonorImpact: () => api.get('/donor-dashboard/impact'),
+  
+  // Get donor profile
+  getDonorProfile: () => api.get('/donor-dashboard/profile'),
+  
+  // Update getUserStatistics to use new endpoint
+  getUserStatistics: (userId) => api.get('/donor-dashboard/stats'),
 };
+
+// Dashboard API for consolidated stats
+export const dashboardAPI = {
+  getAdminStats: () => api.get('/dashboard/admin/stats'),
+  getVolunteerStats: () => api.get('/dashboard/volunteer/stats'),
+  getDonorStats: () => api.get('/dashboard/donor/stats'),
+  getBeneficiaryStats: () => api.get('/dashboard/beneficiary/stats'),
+};
+
 export default api;

@@ -1,16 +1,16 @@
 import { motion } from 'framer-motion';
 import { 
-  HeartIcon, 
-  UsersIcon, 
+  AcademicCapIcon, 
+  UserGroupIcon, 
   BookOpenIcon,
-  HandRaisedIcon
+  ChartBarIcon
 } from '@heroicons/react/24/outline';
 
 const stats = [
-  { value: '10,000+', label: 'Lives Impacted', icon: <HeartIcon className="h-8 w-8 text-white" /> },
-  { value: '500+', label: 'Volunteers', icon: <UsersIcon className="h-8 w-8 text-white" /> },
-  { value: '50+', label: 'Communities', icon: <BookOpenIcon className="h-8 w-8 text-white" /> },
-  { value: '15', label: 'Years Serving', icon: <HandRaisedIcon className="h-8 w-8 text-white" /> },
+  { value: '25,000+', label: 'Students Supported', icon: <AcademicCapIcon className="h-8 w-8 text-white" /> },
+  { value: '1,200+', label: 'Active Mentors', icon: <UserGroupIcon className="h-8 w-8 text-white" /> },
+  { value: '500+', label: 'Schools Reached', icon: <BookOpenIcon className="h-8 w-8 text-white" /> },
+  { value: '8', label: 'Years of Impact', icon: <ChartBarIcon className="h-8 w-8 text-white" /> },
 ];
 
 export default function StatsSection() {

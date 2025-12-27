@@ -2,9 +2,13 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   PlusIcon, 
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
+  EyeIcon,
+  DocumentTextIcon,
+  PencilSquareIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline';
-import { FaUsers, FaCalendar, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaUsers, FaCalendar, FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock, FaChartBar } from 'react-icons/fa';
 import VolunteerCard from './components/volunteer/VolunteerCard';
 import VolunteerForm from './components/volunteer/VolunteerForm';
 import VolunteerDetailsModal from './components/volunteer/VolunteerDetailsModal';
@@ -315,21 +319,41 @@ export default function AdminVolunteers() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-primary-50/20 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Volunteers Management</h1>
-            <p className="text-gray-600 mt-2">Manage and coordinate volunteer activities</p>
+            <motion.h1 
+              className="text-3xl font-bold text-gray-900"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              Volunteers Management
+            </motion.h1>
+            <motion.p 
+              className="text-gray-600 mt-2"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              Manage and coordinate volunteer activities
+            </motion.p>
           </div>
-          <button
-            onClick={handleCreateVolunteer}
-            className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors duration-200"
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <PlusIcon className="h-5 w-5 mr-2" />
-            Add Volunteer
-          </button>
+            <button
+              onClick={handleCreateVolunteer}
+              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg hover:from-primary-700 hover:to-secondary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-300 font-medium shadow-lg"
+            >
+              <PlusIcon className="h-5 w-5 mr-2" />
+              Add Volunteer
+            </button>
+          </motion.div>
         </div>
 
         {/* Stats Cards */}
@@ -339,25 +363,29 @@ export default function AdminVolunteers() {
               name: 'Total Volunteers', 
               value: stats.totalVolunteers, 
               icon: FaUsers, 
-              color: 'bg-blue-500'
+              color: 'from-primary-500 to-primary-600',
+              bgColor: 'bg-primary-50'
             },
             { 
               name: 'Active Volunteers', 
               value: stats.activeVolunteers, 
-              icon: FaUsers, 
-              color: 'bg-green-500'
+              icon: FaChartBar, 
+              color: 'from-green-500 to-emerald-600',
+              bgColor: 'bg-green-50'
             },
             { 
               name: 'Total Hours', 
               value: stats.totalHours, 
-              icon: FaCalendar, 
-              color: 'bg-purple-500'
+              icon: FaClock, 
+              color: 'from-purple-500 to-indigo-600',
+              bgColor: 'bg-purple-50'
             },
             { 
               name: 'Events Attended', 
               value: stats.totalEvents, 
-              icon: FaMapMarkerAlt, 
-              color: 'bg-amber-500'
+              icon: FaCalendar, 
+              color: 'from-amber-500 to-orange-600',
+              bgColor: 'bg-amber-50'
             },
           ].map((stat, index) => (
             <motion.div
@@ -365,20 +393,18 @@ export default function AdminVolunteers() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="bg-white overflow-hidden shadow rounded-lg"
+              className="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-200 hover:shadow-xl transition-all duration-300"
             >
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className={`p-3 rounded-lg ${stat.color} text-white`}>
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">{stat.name}</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                  </div>
+                  <div className={`p-3 rounded-xl ${stat.bgColor}`}>
+                    <div className={`p-2 rounded-lg bg-gradient-to-r ${stat.color} text-white`}>
                       <stat.icon className="h-6 w-6" />
                     </div>
-                  </div>
-                  <div className="ml-4 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">{stat.name}</dt>
-                      <dd className="text-lg font-semibold text-gray-900">{stat.value}</dd>
-                    </dl>
                   </div>
                 </div>
               </div>
@@ -387,19 +413,24 @@ export default function AdminVolunteers() {
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white shadow rounded-lg p-6 mb-6">
+        <motion.div 
+          className="bg-white shadow-lg rounded-xl border border-gray-200 p-6 mb-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {/* Search */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+                <MagnifyingGlassIcon className="h-5 w-5 text-primary-400" />
               </div>
               <input
                 type="text"
                 placeholder="Search volunteers..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-300"
               />
             </div>
 
@@ -407,7 +438,7 @@ export default function AdminVolunteers() {
             <select
               value={selectedSkill}
               onChange={(e) => setSelectedSkill(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-300"
             >
               {skills.map(skill => (
                 <option key={skill.value} value={skill.value}>
@@ -420,7 +451,7 @@ export default function AdminVolunteers() {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-300"
             >
               {statuses.map(status => (
                 <option key={status.value} value={status.value}>
@@ -433,7 +464,7 @@ export default function AdminVolunteers() {
             <select
               value={selectedAvailability}
               onChange={(e) => setSelectedAvailability(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-300"
             >
               {availability.map(avail => (
                 <option key={avail.value} value={avail.value}>
@@ -446,7 +477,7 @@ export default function AdminVolunteers() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-300"
             >
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
@@ -456,25 +487,31 @@ export default function AdminVolunteers() {
               <option value="name-desc">Name Z-A</option>
             </select>
           </div>
-        </div>
+        </motion.div>
 
         {/* Volunteers List */}
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">
+        <motion.div 
+          className="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-primary-100/50">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <DocumentTextIcon className="h-5 w-5 mr-2 text-primary-600" />
               Volunteers ({filteredVolunteers.length})
             </h3>
           </div>
 
           {loading ? (
-            <div className="p-6">
+            <div className="p-8">
               <div className="animate-pulse space-y-4">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="flex space-x-4">
+                  <div key={i} className="flex space-x-4 items-center">
                     <div className="rounded-full bg-gray-200 h-12 w-12"></div>
                     <div className="flex-1 space-y-2">
                       <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                     </div>
                   </div>
                 ))}
@@ -482,9 +519,9 @@ export default function AdminVolunteers() {
             </div>
           ) : currentVolunteers.length === 0 ? (
             <div className="text-center py-12">
-              <FaUsers className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No volunteers found</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <FaUsers className="mx-auto h-16 w-16 text-gray-400" />
+              <h3 className="mt-4 text-lg font-medium text-gray-900">No volunteers found</h3>
+              <p className="mt-2 text-sm text-gray-500 max-w-md mx-auto">
                 {searchTerm || selectedSkill !== 'all' || selectedStatus !== 'all' 
                   ? 'Try adjusting your search or filter to find what you are looking for.'
                   : 'Get started by adding a new volunteer.'
@@ -508,7 +545,7 @@ export default function AdminVolunteers() {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="px-6 py-4 border-t border-gray-200">
+                <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-gray-700">
                       Showing <span className="font-medium">{indexOfFirstVolunteer + 1}</span> to{' '}
@@ -521,7 +558,7 @@ export default function AdminVolunteers() {
                       <button
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                         disabled={currentPage === 1}
-                        className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Previous
                       </button>
@@ -529,10 +566,10 @@ export default function AdminVolunteers() {
                         <button
                           key={page}
                           onClick={() => setCurrentPage(page)}
-                          className={`px-3 py-2 text-sm font-medium rounded-lg ${
+                          className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                             currentPage === page
-                              ? 'bg-primary-600 text-white'
-                              : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+                              ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white shadow-lg'
+                              : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
                           }`}
                         >
                           {page}
@@ -541,7 +578,7 @@ export default function AdminVolunteers() {
                       <button
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                         disabled={currentPage === totalPages}
-                        className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Next
                       </button>
@@ -551,7 +588,7 @@ export default function AdminVolunteers() {
               )}
             </>
           )}
-        </div>
+        </motion.div>
 
         {/* Volunteer Form Modal */}
         {showForm && (

@@ -16,13 +16,13 @@ try {
       key_id: process.env.RAZORPAY_KEY_ID,
       key_secret: process.env.RAZORPAY_KEY_SECRET
     });
-    console.log('✅ Razorpay initialized successfully');
+    console.log('✅ Razorpay initialized successfully for education donations');
   }
 } catch (error) {
   console.error('❌ Razorpay initialization failed:', error.message);
 }
 
-// @desc    Create Razorpay order
+// @desc    Create Razorpay order for education donation
 // @route   Internal
 // @access  Private
 const createOrder = async (amount, currency = 'INR') => {
@@ -35,18 +35,18 @@ const createOrder = async (amount, currency = 'INR') => {
     const options = {
       amount: amount * 100, // Razorpay expects amount in paise
       currency: currency,
-      receipt: `receipt_${Date.now()}`
+      receipt: `edu_receipt_${Date.now()}`
     };
 
     const order = await razorpay.orders.create(options);
     return order;
   } catch (error) {
-    console.error('Razorpay order creation error:', error);
-    throw new Error(`Failed to create payment order: ${error.message}`);
+    console.error('Education donation Razorpay order creation error:', error);
+    throw new Error(`Failed to create education donation payment order: ${error.message}`);
   }
 };
 
-// @desc    Verify payment signature
+// @desc    Verify education donation payment signature
 // @route   Internal
 // @access  Private
 const verifyPaymentSignature = (orderId, paymentId, signature) => {
@@ -63,12 +63,12 @@ const verifyPaymentSignature = (orderId, paymentId, signature) => {
     
     return expectedSignature === signature;
   } catch (error) {
-    console.error('Payment signature verification error:', error);
+    console.error('Education donation payment signature verification error:', error);
     return false;
   }
 };
 
-// @desc    Create donation record
+// @desc    Create education donation record
 // @route   Internal
 // @access  Private
 const createDonationRecord = async (donationData) => {
@@ -77,12 +77,12 @@ const createDonationRecord = async (donationData) => {
     await donation.save();
     return donation;
   } catch (error) {
-    console.error('Donation record creation error:', error);
-    throw new Error('Failed to create donation record');
+    console.error('Education donation record creation error:', error);
+    throw new Error('Failed to create education donation record');
   }
 };
 
-// @desc    Update donation status
+// @desc    Update education donation status
 // @route   Internal
 // @access  Private
 const updateDonationStatus = async (orderId, status, paymentData = {}) => {
@@ -96,7 +96,7 @@ const updateDonationStatus = async (orderId, status, paymentData = {}) => {
       updateData.bank = paymentData.bank;
       updateData.wallet = paymentData.wallet;
       
-      // Generate receipt
+      // Generate education receipt
       try {
         const receiptUrl = await generateReceipt({
           donation: { ...paymentData.donation, _id: paymentData.donationId },
@@ -104,7 +104,7 @@ const updateDonationStatus = async (orderId, status, paymentData = {}) => {
         });
         updateData.receipt_url = receiptUrl;
       } catch (receiptError) {
-        console.error('Receipt generation failed:', receiptError);
+        console.error('Education receipt generation failed:', receiptError);
         // Continue without receipt URL
       }
     }
@@ -116,10 +116,10 @@ const updateDonationStatus = async (orderId, status, paymentData = {}) => {
     ).populate('donor');
 
     if (status === 'completed' && donation) {
-      // Update user role and donation stats
+      // Update user role and education donation stats
       await updateUserDonationStats(donation.donor, donation.amount, donation.cause);
       
-      // Add payment method to user's profile for future donations
+      // Add payment method to user's profile for future education donations
       if (!donation.donor_info.isAnonymous) {
         await addUserPaymentMethod(donation.donor, paymentData);
       }
@@ -127,12 +127,12 @@ const updateDonationStatus = async (orderId, status, paymentData = {}) => {
 
     return donation;
   } catch (error) {
-    console.error('Donation status update error:', error);
-    throw new Error('Failed to update donation status');
+    console.error('Education donation status update error:', error);
+    throw new Error('Failed to update education donation status');
   }
 };
 
-// @desc    Update user donation statistics and role
+// @desc    Update user education donation statistics and role
 // @route   Internal
 // @access  Private
 const updateUserDonationStats = async (userId, amount, cause) => {
@@ -140,14 +140,14 @@ const updateUserDonationStats = async (userId, amount, cause) => {
     const user = await User.findById(userId);
     if (user) {
       await user.updateDonationStats(amount, cause);
-      await user.updateToDonor();
+      await user.updateToEducationSupporter();
     }
   } catch (error) {
-    console.error('User stats update error:', error);
+    console.error('User education donation stats update error:', error);
   }
 };
 
-// @desc    Add payment method to user profile
+// @desc    Add payment method to user profile for education donations
 // @route   Internal
 // @access  Private
 const addUserPaymentMethod = async (userId, paymentData) => {
@@ -162,18 +162,18 @@ const addUserPaymentMethod = async (userId, paymentData) => {
       });
     }
   } catch (error) {
-    console.error('Add payment method error:', error);
+    console.error('Add education donation payment method error:', error);
   }
 };
 
-// @desc    Get donation by order ID
+// @desc    Get education donation by order ID
 // @route   Internal
 // @access  Private
 const getDonationByOrderId = async (orderId) => {
   return await Donation.findOne({ razorpay_order_id: orderId }).populate('donor');
 };
 
-// @desc    Get user donation history
+// @desc    Get user education donation history
 // @route   Internal
 // @access  Private
 const getUserDonationHistory = async (userId, page = 1, limit = 10) => {
@@ -203,12 +203,12 @@ const getUserDonationHistory = async (userId, page = 1, limit = 10) => {
       }
     };
   } catch (error) {
-    console.error('Get user donation history error:', error);
-    throw new Error('Failed to fetch donation history');
+    console.error('Get user education donation history error:', error);
+    throw new Error('Failed to fetch education donation history');
   }
 };
 
-// @desc    Get all donations for admin
+// @desc    Get all education donations for admin
 // @route   Internal
 // @access  Private
 const getAllDonations = async (page = 1, limit = 20, filters = {}) => {
@@ -234,7 +234,7 @@ const getAllDonations = async (page = 1, limit = 20, filters = {}) => {
 
     const total = await Donation.countDocuments(matchStage);
 
-    // Get statistics
+    // Get education donation statistics
     const stats = await Donation.aggregate([
       { $match: { status: 'completed', ...matchStage } },
       {
@@ -247,7 +247,7 @@ const getAllDonations = async (page = 1, limit = 20, filters = {}) => {
       }
     ]);
 
-    const causeStats = await Donation.aggregate([
+    const educationProgramStats = await Donation.aggregate([
       { $match: { status: 'completed', ...matchStage } },
       {
         $group: {
@@ -269,16 +269,16 @@ const getAllDonations = async (page = 1, limit = 20, filters = {}) => {
         totalAmount: stats[0]?.totalAmount || 0,
         totalDonations: stats[0]?.totalDonations || 0,
         averageDonation: stats[0]?.averageDonation || 0,
-        causeBreakdown: causeStats
+        programBreakdown: educationProgramStats
       }
     };
   } catch (error) {
-    console.error('Get all donations error:', error);
-    throw new Error('Failed to fetch donations');
+    console.error('Get all education donations error:', error);
+    throw new Error('Failed to fetch education donations');
   }
 };
 
-// @desc    Get donation statistics for dashboard
+// @desc    Get education donation statistics for dashboard
 // @route   Internal
 // @access  Private
 const getDonationStatistics = async () => {
@@ -293,7 +293,7 @@ const getDonationStatistics = async () => {
       yearlyStats,
       recentDonations
     ] = await Promise.all([
-      // Total statistics
+      // Total education donation statistics
       Donation.aggregate([
         { $match: { status: 'completed' } },
         {
@@ -301,11 +301,11 @@ const getDonationStatistics = async () => {
             _id: null,
             totalAmount: { $sum: '$amount' },
             totalDonations: { $sum: 1 },
-            uniqueDonors: { $addToSet: '$donor' }
+            uniqueSupporters: { $addToSet: '$donor' }
           }
         }
       ]),
-      // Monthly statistics
+      // Monthly education donation statistics
       Donation.aggregate([
         { 
           $match: { 
@@ -321,7 +321,7 @@ const getDonationStatistics = async () => {
           }
         }
       ]),
-      // Yearly statistics
+      // Yearly education donation statistics
       Donation.aggregate([
         { 
           $match: { 
@@ -337,7 +337,7 @@ const getDonationStatistics = async () => {
           }
         }
       ]),
-      // Recent donations
+      // Recent education donations
       Donation.find({ status: 'completed' })
         .populate('donor', 'name email')
         .sort({ createdAt: -1 })
@@ -349,7 +349,7 @@ const getDonationStatistics = async () => {
       total: {
         amount: totalStats[0]?.totalAmount || 0,
         donations: totalStats[0]?.totalDonations || 0,
-        donors: totalStats[0]?.uniqueDonors?.length || 0
+        supporters: totalStats[0]?.uniqueSupporters?.length || 0
       },
       monthly: {
         amount: monthlyStats[0]?.amount || 0,
@@ -362,12 +362,12 @@ const getDonationStatistics = async () => {
       recentDonations
     };
   } catch (error) {
-    console.error('Get donation statistics error:', error);
-    throw new Error('Failed to fetch donation statistics');
+    console.error('Get education donation statistics error:', error);
+    throw new Error('Failed to fetch education donation statistics');
   }
 };
 
-// @desc    Check if Razorpay is configured
+// @desc    Check if Razorpay is configured for education donations
 // @route   Internal
 // @access  Private
 const isRazorpayConfigured = () => {

@@ -27,7 +27,7 @@ export default function AboutHero() {
             className="inline-flex items-center px-6 py-3 rounded-full bg-white bg-opacity-10 backdrop-blur-sm border border-white border-opacity-20 mb-8"
           >
             <span className="w-2 h-2 bg-green-400 rounded-full mr-3 animate-pulse"></span>
-            <span className="text-primary-100 font-medium">Trusted Since 2008</span>
+            <span className="text-primary-100 font-medium">Empowering Students Since 2010</span>
           </motion.div>
 
           <motion.h1 
@@ -36,9 +36,9 @@ export default function AboutHero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.8 }}
           >
-            <span className="block">Our Story of</span>
+            <span className="block">Transforming Lives Through</span>
             <span className="block text-primary-200 bg-gradient-to-r from-primary-200 to-secondary-200 bg-clip-text text-transparent">
-              Hope & Impact
+              Education & Opportunity
             </span>
           </motion.h1>
           
@@ -48,8 +48,9 @@ export default function AboutHero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.8 }}
           >
-            For over 15 years, we've been dedicated to transforming communities through 
-            sustainable education, healthcare, and economic empowerment programs.
+            For over a decade, we've been dedicated to bridging educational gaps by providing 
+            free quality education, digital learning resources, mentorship, and scholarship 
+            opportunities to underprivileged students across rural communities.
           </motion.p>
           
           <motion.div 
@@ -59,16 +60,16 @@ export default function AboutHero() {
             transition={{ delay: 0.6, duration: 0.8 }}
           >
             <Link
-              to="/get-involved"
+              to="/donation"
               className="inline-flex items-center px-8 py-4 bg-white text-primary-700 font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
             >
-              Join Our Mission
+              Support Education
             </Link>
             <Link
-              to="/contact"
+              to="/join-our-team"
               className="inline-flex items-center px-8 py-4 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-primary-700 transition-all duration-300"
             >
-              Contact Us
+              Become a Mentor
             </Link>
           </motion.div>
         </div>
@@ -84,9 +85,9 @@ export default function AboutHero() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-3 gap-8 py-8">
             {[
-              { number: '15+', label: 'Years of Service' },
-              { number: '50+', label: 'Communities' },
-              { number: '10K+', label: 'Lives Impacted' }
+              { number: '14+', label: 'Years of Impact' },
+              { number: '75+', label: 'Rural Communities' },
+              { number: '25K+', label: 'Students Empowered' }
             ].map((stat, index) => (
               <div key={index} className="text-center">
                 <div className="text-2xl font-bold text-primary-600">{stat.number}</div>

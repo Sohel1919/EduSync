@@ -11,33 +11,33 @@ import {
 const benefits = [
   {
     icon: <HeartIcon className="h-8 w-8 text-primary-600" />,
-    title: 'Make a Real Impact',
-    description: 'Directly contribute to transforming lives and communities through meaningful work.'
+    title: 'Transform Young Lives',
+    description: 'Directly impact underprivileged students by helping them access quality education and achieve their dreams.'
   },
   {
     icon: <AcademicCapIcon className="h-8 w-8 text-primary-600" />,
-    title: 'Skill Development',
-    description: 'Gain valuable experience and develop new skills in community service and leadership.'
+    title: 'Share Your Knowledge',
+    description: 'Use your academic expertise to guide students and help bridge educational gaps in underserved communities.'
   },
   {
     icon: <UserGroupIcon className="h-8 w-8 text-primary-600" />,
-    title: 'Join a Community',
-    description: 'Connect with like-minded individuals passionate about making a difference.'
+    title: 'Join Education Champions',
+    description: 'Connect with passionate educators and professionals committed to educational equity.'
   },
   {
     icon: <ClockIcon className="h-8 w-8 text-primary-600" />,
-    title: 'Flexible Commitment',
-    description: 'Volunteer according to your schedule with various time commitment options.'
+    title: 'Flexible Volunteering',
+    description: 'Contribute according to your schedule with online and in-person mentoring options.'
   },
   {
     icon: <ChartBarIcon className="h-8 w-8 text-primary-600" />,
-    title: 'Career Growth',
-    description: 'Enhance your resume with impactful volunteer experience and references.'
+    title: 'Professional Development',
+    description: 'Enhance your teaching, mentoring, and leadership skills while making a difference.'
   },
   {
     icon: <GiftIcon className="h-8 w-8 text-primary-600" />,
-    title: 'Recognition',
-    description: 'Receive certificates, awards, and recognition for your valuable contributions.'
+    title: 'Recognition & Certificates',
+    description: 'Receive volunteer certificates, awards, and recognition for your educational contributions.'
   }
 ];
 
@@ -52,9 +52,9 @@ export default function VolunteerBenefits() {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          <h2 className="section-header">Why Volunteer With Us?</h2>
+          <h2 className="section-header">Why Mentor With EduSync?</h2>
           <p className="section-subheader">
-            Join our community and experience the rewards of making a difference
+            Join our education revolution and help shape the future of underprivileged students
           </p>
         </motion.div>
 
@@ -86,17 +86,17 @@ export default function VolunteerBenefits() {
           viewport={{ once: true }}
         >
           <div className="bg-gradient-to-r from-primary-600 to-secondary-600 rounded-2xl p-8 text-white">
-            <h3 className="text-2xl font-bold mb-4">Ready to Start Your Journey?</h3>
+            <h3 className="text-2xl font-bold mb-4">Ready to Mentor a Student?</h3>
             <p className="text-primary-100 mb-6 max-w-2xl mx-auto">
-              Join hundreds of volunteers who are already making a difference in their communities. 
-              Your time and skills can create lasting change.
+              Join hundreds of education volunteers who are transforming lives through mentorship. 
+              Your knowledge can unlock a student's potential and create lasting educational impact.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button className="px-6 py-3 bg-white text-primary-600 font-semibold rounded-lg hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl">
-                Apply as Volunteer
+                Become a Mentor
               </button>
               <button className="px-6 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-primary-600 transition-all duration-300">
-                Learn More
+                Learn About Programs
               </button>
             </div>
           </div>

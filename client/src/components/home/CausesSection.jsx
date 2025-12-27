@@ -3,31 +3,31 @@ import { motion } from 'framer-motion';
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
 import { 
   LightBulbIcon, 
-  ShieldCheckIcon, 
-  UsersIcon 
+  AcademicCapIcon, 
+  DevicePhoneMobileIcon 
 } from '@heroicons/react/24/outline';
-
+import { image1, image2, image3 } from '../../assets/assets';
 const causes = [
   {
-    id: 'education-for-all',
-    title: 'Education for All',
-    description: 'Building schools and providing scholarships to underprivileged children in rural areas.',
+    id: 'digital-learning',
+    title: 'Digital Learning Initiative',
+    description: 'Providing tablets, laptops, and internet access to bridge the digital divide for rural students.',
+    icon: <DevicePhoneMobileIcon className="h-12 w-12 text-primary-600" />,
+    image: image1
+  },
+  {
+    id: 'scholarship-program',
+    title: 'Scholarship Assistance',
+    description: 'Comprehensive scholarship programs covering tuition, books, and educational materials for deserving students.',
+    icon: <AcademicCapIcon className="h-12 w-12 text-primary-600" />,
+    image: image2
+  },
+  {
+    id: 'girl-education',
+    title: 'Girl Child Education',
+    description: 'Special programs encouraging and supporting female education with mentorship and safe learning environments.',
     icon: <LightBulbIcon className="h-12 w-12 text-primary-600" />,
-    image: 'https://wallpapercave.com/wp/wp4385848.jpg'
-  },
-  {
-    id: 'healthcare-access',
-    title: 'Healthcare Access',
-    description: 'Mobile clinics and health awareness programs reaching remote communities.',
-    icon: <ShieldCheckIcon className="h-12 w-12 text-primary-600" />,
-    image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'
-  },
-  {
-    id: 'women-empowerment',
-    title: 'Women Empowerment',
-    description: 'Vocational training and microfinance programs creating economic independence.',
-    icon: <UsersIcon className="h-12 w-12 text-primary-600" />,
-    image: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'
+    image: image3
   },
 ];
 
@@ -42,9 +42,9 @@ export default function CausesSection() {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          <h2 className="section-header">Our Focus Areas</h2>
+          <h2 className="section-header">Our Educational Programs</h2>
           <p className="section-subheader">
-            We target these critical areas to create maximum sustainable impact
+            Transforming lives through comprehensive educational support and digital learning initiatives
           </p>
         </motion.div>
 
@@ -75,7 +75,7 @@ export default function CausesSection() {
                 <p className="mt-4 text-gray-600 text-center md:text-left">{cause.description}</p>
                 <div className="mt-6 text-center md:text-left">
                   <Link
-                    to={`/causes/${cause.id}`}
+                    to={`/`}
                     className="inline-flex items-center text-primary-600 hover:text-primary-800 font-medium group"
                   >
                     Learn more 

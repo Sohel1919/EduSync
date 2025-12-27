@@ -37,7 +37,6 @@ export default function Navbar() {
     { name: 'Home', path: '/', icon: <HomeIcon className="h-5 w-5" /> },
     { name: 'About Us', path: '/about', icon: <InformationCircleIcon className="h-5 w-5" /> },
     { name: 'Projects', path: '/projects', icon: <FolderIcon className="h-5 w-5" /> },
-    { name: 'Beneficiaries', path: '/beneficiaries', icon: <UserGroupIcon className="h-5 w-5" /> },
     { name: 'Volunteer', path: '/volunteer', icon: <HandRaisedIcon className="h-5 w-5" /> },
     { name: 'Donation', path: '/donation', icon: <CurrencyDollarIcon className="h-5 w-5" /> },
   ];
@@ -56,7 +55,7 @@ export default function Navbar() {
     : [];
 
   const beneficiaryNavItems = userRole === 'beneficiary' 
-    ? [{ name: 'Beneficiary Portal', path: '/beneficiary/portal', icon: <ChartBarIcon className="h-5 w-5" /> }] 
+    ? [{ name: 'Beneficiary Dashboard', path: '/beneficiary/dashboard', icon: <ChartBarIcon className="h-5 w-5" /> }] 
     : [];
 
   // REMOVED: userNavItems to eliminate duplicate "My Profile" from main nav
@@ -91,10 +90,10 @@ export default function Navbar() {
             <Link to="/" className="text-white font-bold flex items-center space-x-2">
               <div className="flex items-center justify-center w-8 h-8 bg-white rounded-lg">
                 <div className="w-6 h-6 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-md flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">CS</span>
+                  <span className="text-white text-xs font-bold">ES</span>
                 </div>
               </div>
-              <span className="text-xl tracking-tight">CareSync</span>
+              <span className="text-xl tracking-tight">EduSync</span>
             </Link>
           </motion.div>
 

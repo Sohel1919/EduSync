@@ -23,13 +23,12 @@ const projectSchema = new mongoose.Schema({
     required: [true, 'Project category is required'],
     enum: [
       'education',
-      'healthcare', 
-      'empowerment',
-      'environment',
-      'disaster-relief',
-      'animal-welfare',
-      'elderly-care',
-      'child-development'
+      'digital-learning', 
+      'scholarship',
+      'mentorship',
+      'skill-development',
+      'school-infrastructure',
+      'girl-education',
     ]
   },
   targetAmount: {

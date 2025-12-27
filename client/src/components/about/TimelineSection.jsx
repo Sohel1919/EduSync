@@ -2,31 +2,31 @@ import { motion } from 'framer-motion';
 
 const milestones = [
   {
-    year: '2008',
+    year: '2010',
     title: 'Humble Beginnings',
-    description: 'Started with evening classes for 50 children in a small community center, driven by three passionate university students.',
+    description: 'Started with evening tutoring sessions for 50 underprivileged children in a community hall, driven by passionate educators.',
     icon: '🎓',
     color: 'bg-blue-500'
   },
   {
-    year: '2012',
-    title: 'First Expansion',
-    description: 'Launched healthcare initiatives and established our first community health center, reaching 5 villages.',
-    icon: '🏥',
+    year: '2014',
+    title: 'Digital Learning Initiative',
+    description: 'Launched our first computer lab and digital literacy program, bringing technology education to rural students.',
+    icon: '💻',
     color: 'bg-green-500'
   },
   {
-    year: '2016',
-    title: 'Strategic Growth',
-    description: 'Expanded to economic empowerment programs and formed key international partnerships across 20+ communities.',
-    icon: '🌱',
+    year: '2018',
+    title: 'Scholarship Expansion',
+    description: 'Established comprehensive scholarship programs and mentorship initiatives across 50+ rural communities.',
+    icon: '🏆',
     color: 'bg-purple-500'
   },
   {
     year: '2023',
-    title: 'Global Recognition',
-    description: 'Awarded for excellence and expanded operations internationally, impacting 10,000+ lives across 3 countries.',
-    icon: '🌍',
+    title: 'National Recognition',
+    description: 'Awarded for educational excellence and expanded digital learning programs to 25,000+ students across multiple states.',
+    icon: '🌟',
     color: 'bg-orange-500'
   }
 ];
@@ -43,10 +43,10 @@ export default function TimelineSection() {
           viewport={{ once: true }}
         >
           <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            Our Journey
+            Our Educational Journey
           </h2>
           <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-            From a small student initiative to a globally recognized organization creating lasting impact
+            From small tutoring sessions to a nationally recognized organization transforming rural education
           </p>
         </motion.div>
 

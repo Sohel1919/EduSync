@@ -2,14 +2,14 @@ import { Link } from 'react-router-dom';
 
 export default function Footer() {
   const footerData = {
-    orgName: 'CareSync',
-    email: 'contact@caresync.org',
-    mission: 'Empowering communities through sustainable education, healthcare, and economic opportunities for lasting change.',
+    orgName: 'EduSync',
+    email: 'contact@edusync.org',
+    mission: 'Empowering communities through sustainable education.',
     social: {
-      facebook: 'caresyncofficial',
-      twitter: 'caresync_org',
-      instagram: 'caresyncofficial',
-      linkedin: 'caresync-organization'
+      facebook: 'edusyncofficial',
+      twitter: 'edusync_org',
+      instagram: 'edusyncofficial',
+      linkedin: 'edusync-organization'
     }
   };
 
@@ -46,7 +46,7 @@ export default function Footer() {
           <div>
             <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2">
-              {['Home', 'About Us', 'Our Causes', 'Volunteer', 'Contact'].map((item) => (
+              {['Home', 'About Us', 'Projects', 'Volunteer', 'Donation'].map((item) => (
                 <li key={item}>
                   <Link 
                     to={`/${item.toLowerCase().replace(' ', '-')}`}
@@ -70,8 +70,8 @@ export default function Footer() {
                   {footerData.email}
                 </a>
               </p>
-              <p className="mb-4">123 Hope Street, Community District</p>
-              <p>+1 (555) 123-HELP</p>
+              <p className="mb-4">At. Post Halda Tq. Kandhar Dist. Nanded, Community District</p>
+              <p>+919699128854-HELP</p>
             </address>
           </div>
         </div>

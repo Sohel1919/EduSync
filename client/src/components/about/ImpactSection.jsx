@@ -7,26 +7,26 @@ import {
 } from '@heroicons/react/24/outline';
 
 const stats = [
-  { value: '10,000+', label: 'Lives Impacted', icon: <HeartIcon className="h-8 w-8 text-white" /> },
-  { value: '500+', label: 'Volunteers', icon: <UsersIcon className="h-8 w-8 text-white" /> },
-  { value: '50+', label: 'Communities', icon: <BookOpenIcon className="h-8 w-8 text-white" /> },
-  { value: '15', label: 'Years Serving', icon: <HandRaisedIcon className="h-8 w-8 text-white" /> },
+  { value: '25,000+', label: 'Students Empowered', icon: <HeartIcon className="h-8 w-8 text-white" /> },
+  { value: '1,200+', label: 'Volunteer Mentors', icon: <UsersIcon className="h-8 w-8 text-white" /> },
+  { value: '75+', label: 'Rural Communities', icon: <BookOpenIcon className="h-8 w-8 text-white" /> },
+  { value: '14', label: 'Years of Service', icon: <HandRaisedIcon className="h-8 w-8 text-white" /> },
 ];
 
 const impactStories = [
   {
-    title: 'Education Transformation',
-    location: 'Rural Kenya',
-    impact: '85% increase in school enrollment',
-    image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
-    description: 'Built schools and provided scholarships to children in remote communities.'
+    title: 'Digital Learning Revolution',
+    location: 'Rural Maharashtra',
+    impact: '92% increase in digital literacy',
+    image: 'https://images.unsplash.com/photo-1580894894513-541e068a3e2b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+    description: 'Established digital classrooms and provided tablets to 5,000 students in remote villages, bridging the technology gap.'
   },
   {
-    title: 'Healthcare Access',
-    location: 'Mountain Nepal',
-    impact: '60% reduction in child mortality',
-    image: 'https://images.unsplash.com/photo-1551601651-2a8555f1a136?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
-    description: 'Mobile clinics serving patients in inaccessible mountain regions.'
+    title: 'Girl Child Education',
+    location: 'Uttar Pradesh',
+    impact: '78% more girls in schools',
+    image: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+    description: 'Scholarship programs and safe learning spaces increased female enrollment and reduced dropout rates significantly.'
   }
 ];
 
@@ -43,10 +43,10 @@ export default function ImpactSection() {
           viewport={{ once: true }}
         >
           <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            Our Impact in Numbers
+            Our Educational Impact
           </h2>
           <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-            Measurable results that represent real change in communities we serve
+            Transforming futures through accessible education and digital learning opportunities
           </p>
         </motion.div>
 
@@ -88,7 +88,7 @@ export default function ImpactSection() {
           viewport={{ once: true }}
         >
           <h3 className="text-2xl font-bold text-gray-900 text-center mb-12">
-            Stories of Transformation
+            Success Stories
           </h3>
           
           <div className="grid md:grid-cols-2 gap-8">

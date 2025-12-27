@@ -1,282 +1,358 @@
 const dummyProjects = [
   {
     id: 1,
-    title: "Education for Underprivileged Children",
-    summary: "Providing quality education, books, and school supplies to children from low-income families in rural areas.",
-    category: "education",
-    targetAmount: 500000,
-    collectedAmount: 325000,
+    title: "Digital Learning Lab Setup",
+    summary: "Establishing computer labs with internet access in rural schools to bridge the digital divide and provide quality digital education.",
+    category: "digital-learning",
+    targetAmount: 800000,
+    collectedAmount: 520000,
     deadline: "2024-12-31",
-    images: ["https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"],
-    tags: ["education", "children", "rural", "school"],
-    beneficiaries: 250,
-    organization: "Education for All Foundation",
+    images: [
+      "https://images.unsplash.com/photo-1580894894513-541e068a3e2b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+    ],
+    tags: ["digital-education", "computer-lab", "rural-schools", "technology"],
+    beneficiaries: 500,
+    organization: "EduSync Foundation",
     location: "Rural Maharashtra"
   },
   {
     id: 2,
-    title: "Healthcare for Rural Communities",
-    summary: "Setting up mobile medical clinics and providing free healthcare services to remote villages.",
-    category: "healthcare",
-    targetAmount: 750000,
-    collectedAmount: 450000,
+    title: "Merit Scholarship Program",
+    summary: "Providing full scholarships to academically brilliant students from economically disadvantaged backgrounds for higher education.",
+    category: "scholarship",
+    targetAmount: 1200000,
+    collectedAmount: 750000,
     deadline: "2024-11-15",
-    images: ["https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"],
-    tags: ["healthcare", "medical", "rural", "clinic"],
-    beneficiaries: 500,
-    organization: "Rural Health Initiative",
-    location: "Uttar Pradesh"
-  },
-  {
-    id: 3,
-    title: "Women Entrepreneurship Program",
-    summary: "Empowering women through skill development, business training, and startup funding.",
-    category: "women-empowerment",
-    targetAmount: 300000,
-    collectedAmount: 180000,
-    deadline: "2024-10-20",
-    images: ["https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"],
-    tags: ["women", "entrepreneurship", "empowerment", "skills"],
-    beneficiaries: 150,
-    organization: "Women Empowerment Trust",
-    location: "Karnataka"
-  },
-  {
-    id: 4,
-    title: "Clean Water Initiative",
-    summary: "Installing water purification systems in villages lacking access to clean drinking water.",
-    category: "environment",
-    targetAmount: 600000,
-    collectedAmount: 420000,
-    deadline: "2024-09-30",
-    images: ["https://images.unsplash.com/photo-1549037175-e2c8b3030e00?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"],
-    tags: ["water", "clean", "environment", "health"],
-    beneficiaries: 1000,
-    organization: "Clean Water Foundation",
-    location: "Rajasthan"
-  },
-  {
-    id: 5,
-    title: "Digital Literacy for Seniors",
-    summary: "Teaching digital skills to elderly people to help them stay connected and access online services.",
-    category: "education",
-    targetAmount: 200000,
-    collectedAmount: 95000,
-    deadline: "2024-08-25",
-    images: ["https://images.unsplash.com/photo-1584697964358-3e14ca57658b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"],
-    tags: ["digital", "seniors", "technology", "education"],
-    beneficiaries: 200,
-    organization: "Digital India Foundation",
-    location: "Tamil Nadu"
-  },
-  {
-    id: 6,
-    title: "Animal Shelter Support",
-    summary: "Providing food, medical care, and shelter for stray and abandoned animals in the city.",
-    category: "animal-welfare",
-    targetAmount: 400000,
-    collectedAmount: 275000,
-    deadline: "2024-12-15",
-    images: ["https://images.unsplash.com/photo-1455103493930-a116f655b6c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"],
-    tags: ["animals", "shelter", "welfare", "rescue"],
-    beneficiaries: 300,
-    organization: "Animal Care Trust",
-    location: "Delhi NCR"
-  },
-  {
-    id: 7,
-    title: "Youth Sports Development",
-    summary: "Creating sports facilities and training programs for underprivileged youth in urban areas.",
-    category: "education",
-    targetAmount: 350000,
-    collectedAmount: 195000,
-    deadline: "2024-11-30",
-    images: ["https://images.unsplash.com/photo-1549060279-7e168fce7090?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"],
-    tags: ["sports", "youth", "development", "fitness"],
-    beneficiaries: 400,
-    organization: "Youth Sports Foundation",
-    location: "Mumbai"
-  },
-  {
-    id: 8,
-    title: "Elderly Care Program",
-    summary: "Providing healthcare, nutrition, and companionship for elderly people living alone.",
-    category: "healthcare",
-    targetAmount: 280000,
-    collectedAmount: 165000,
-    deadline: "2024-10-15",
-    images: ["https://images.unsplash.com/photo-1519494080410-f9aa76cb4283?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"],
-    tags: ["elderly", "care", "healthcare", "companionship"],
-    beneficiaries: 180,
-    organization: "Senior Care Foundation",
-    location: "Kerala"
-  },
-  {
-    id: 9,
-    title: "Sustainable Farming Initiative",
-    summary: "Training farmers in sustainable agricultural practices and providing organic farming resources.",
-    category: "environment",
-    targetAmount: 450000,
-    collectedAmount: 320000,
-    deadline: "2024-12-20",
-    images: ["https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"],
-    tags: ["farming", "sustainable", "agriculture", "environment"],
-    beneficiaries: 350,
-    organization: "Green Agriculture Trust",
-    location: "Punjab"
-  },
-  {
-    id: 10,
-    title: "Women's Health Awareness",
-    summary: "Conducting health camps and awareness programs for women in rural communities.",
-    category: "women-empowerment",
-    targetAmount: 320000,
-    collectedAmount: 210000,
-    deadline: "2024-09-25",
-    images: ["https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"],
-    tags: ["women", "health", "awareness", "rural"],
-    beneficiaries: 600,
-    organization: "Women Health Initiative",
-    location: "Bihar"
-  },
-  {
-    id: 11,
-    title: "Wildlife Conservation",
-    summary: "Protecting endangered species and their habitats through conservation efforts.",
-    category: "animal-welfare",
-    targetAmount: 550000,
-    collectedAmount: 380000,
-    deadline: "2024-12-31",
-    images: ["https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"],
-    tags: ["wildlife", "conservation", "animals", "environment"],
-    beneficiaries: 120,
-    organization: "Wildlife Protection Society",
-    location: "Assam"
-  },
-  {
-    id: 12,
-    title: "Disaster Relief Fund",
-    summary: "Providing immediate assistance and rehabilitation for communities affected by natural disasters.",
-    category: "healthcare",
-    targetAmount: 800000,
-    collectedAmount: 520000,
-    deadline: "2024-11-10",
-    images: ["https://images.unsplash.com/photo-1582213782117-fc15acb73d7d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"],
-    tags: ["disaster", "relief", "emergency", "rehabilitation"],
-    beneficiaries: 800,
-    organization: "Disaster Response Network",
+    images: [
+      "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1523580494863-6f3031224c94?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+    ],
+    tags: ["scholarship", "merit-based", "higher-education", "financial-aid"],
+    beneficiaries: 100,
+    organization: "EduSync Foundation",
     location: "Multiple States"
   },
   {
-    id: 13,
-    title: "Vocational Training Center",
-    summary: "Establishing vocational training centers to provide job skills to unemployed youth.",
-    category: "education",
-    targetAmount: 420000,
-    collectedAmount: 285000,
-    deadline: "2024-10-30",
-    images: ["https://images.unsplash.com/photo-1535223289827-42f1e9919769?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"],
-    tags: ["vocational", "training", "skills", "employment"],
+    id: 3,
+    title: "Career Mentorship Program",
+    summary: "Connecting students with industry professionals for career guidance, skill development, and internship opportunities.",
+    category: "mentorship",
+    targetAmount: 450000,
+    collectedAmount: 280000,
+    deadline: "2024-10-20",
+    images: [
+      "https://images.unsplash.com/photo-1553877522-43269d4ea984?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1543269865-cbf427effbad?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+    ],
+    tags: ["mentorship", "career-guidance", "professional-development", "internships"],
     beneficiaries: 300,
-    organization: "Skill Development Mission",
+    organization: "EduSync Foundation",
+    location: "Urban Centers"
+  },
+  {
+    id: 4,
+    title: "Coding & AI Skills Bootcamp",
+    summary: "Intensive training programs in coding, artificial intelligence, and digital skills for underprivileged youth.",
+    category: "skill-development",
+    targetAmount: 600000,
+    collectedAmount: 420000,
+    deadline: "2024-09-30",
+    images: [
+      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+    ],
+    tags: ["coding", "artificial-intelligence", "tech-skills", "bootcamp"],
+    beneficiaries: 200,
+    organization: "EduSync Foundation",
+    location: "Bangalore, Hyderabad"
+  },
+  {
+    id: 5,
+    title: "School Infrastructure Upgrade",
+    summary: "Renovating and upgrading classrooms, libraries, and sanitation facilities in government schools.",
+    category: "school-infrastructure",
+    targetAmount: 950000,
+    collectedAmount: 580000,
+    deadline: "2024-08-25",
+    images: [
+      "https://images.unsplash.com/photo-1588072432836-e10032774350?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1564059813745-7f1f933c6c7e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+    ],
+    tags: ["infrastructure", "classroom-renovation", "sanitation", "learning-environment"],
+    beneficiaries: 800,
+    organization: "EduSync Foundation",
+    location: "Rural Uttar Pradesh"
+  },
+  {
+    id: 6,
+    title: "Girl Child Education Initiative",
+    summary: "Special program to support girls' education through scholarships, mentorship, and safe learning environments.",
+    category: "girl-education",
+    targetAmount: 550000,
+    collectedAmount: 320000,
+    deadline: "2024-12-15",
+    images: [
+      "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+    ],
+    tags: ["girl-education", "women-empowerment", "gender-equality", "scholarship"],
+    beneficiaries: 250,
+    organization: "EduSync Foundation",
+    location: "Rajasthan, Bihar"
+  },
+  {
+    id: 7,
+    title: "STEM Education Program",
+    summary: "Promoting Science, Technology, Engineering, and Mathematics education through hands-on learning and experiments.",
+    category: "digital-learning",
+    targetAmount: 480000,
+    collectedAmount: 295000,
+    deadline: "2024-11-30",
+    images: [
+      "https://images.unsplash.com/photo-1532094349884-543bc11b234d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1507146153580-69a1fe6d8aa1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+    ],
+    tags: ["STEM", "science", "technology", "hands-on-learning"],
+    beneficiaries: 400,
+    organization: "EduSync Foundation",
+    location: "Multiple Locations"
+  },
+  {
+    id: 8,
+    title: "English Language Proficiency",
+    summary: "Comprehensive English language training program to enhance communication skills and career opportunities.",
+    category: "skill-development",
+    targetAmount: 320000,
+    collectedAmount: 185000,
+    deadline: "2024-10-15",
+    images: [
+      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+    ],
+    tags: ["english", "language-skills", "communication", "career-development"],
+    beneficiaries: 350,
+    organization: "EduSync Foundation",
+    location: "Tamil Nadu, Kerala"
+  },
+  {
+    id: 9,
+    title: "Digital Library Access",
+    summary: "Providing tablets and digital library subscriptions to students in remote areas with limited book access.",
+    category: "digital-learning",
+    targetAmount: 380000,
+    collectedAmount: 245000,
+    deadline: "2024-12-20",
+    images: [
+      "https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+    ],
+    tags: ["digital-library", "e-books", "tablets", "remote-learning"],
+    beneficiaries: 600,
+    organization: "EduSync Foundation",
+    location: "North Eastern States"
+  },
+  {
+    id: 10,
+    title: "Vocational Training Center",
+    summary: "Establishing vocational training centers for practical skills in electronics, plumbing, and electrical work.",
+    category: "skill-development",
+    targetAmount: 750000,
+    collectedAmount: 420000,
+    deadline: "2024-09-25",
+    images: [
+      "https://images.unsplash.com/photo-1535223289827-42f1e9919769?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+    ],
+    tags: ["vocational-training", "practical-skills", "employment", "technical-education"],
+    beneficiaries: 300,
+    organization: "EduSync Foundation",
     location: "Gujarat"
   },
   {
+    id: 11,
+    title: "Special Needs Education Support",
+    summary: "Creating inclusive learning environments and specialized support for students with disabilities.",
+    category: "school-infrastructure",
+    targetAmount: 420000,
+    collectedAmount: 265000,
+    deadline: "2024-12-31",
+    images: [
+      "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1577896851231-70ef18881754?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+    ],
+    tags: ["special-needs", "inclusive-education", "disability-support", "accessibility"],
+    beneficiaries: 150,
+    organization: "EduSync Foundation",
+    location: "Karnataka"
+  },
+  {
+    id: 12,
+    title: "Online Learning Platform",
+    summary: "Developing and deploying a comprehensive online learning platform with interactive courses and live classes.",
+    category: "digital-learning",
+    targetAmount: 680000,
+    collectedAmount: 410000,
+    deadline: "2024-11-10",
+    images: [
+      "https://images.unsplash.com/photo-1547658719-da2b51169166?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1553877522-43269d4ea984?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+    ],
+    tags: ["online-learning", "e-learning", "digital-platform", "remote-education"],
+    beneficiaries: 2000,
+    organization: "EduSync Foundation",
+    location: "Pan-India"
+  },
+  {
+    id: 13,
+    title: "Teacher Training Program",
+    summary: "Professional development and modern teaching methodology training for government school teachers.",
+    category: "skill-development",
+    targetAmount: 350000,
+    collectedAmount: 195000,
+    deadline: "2024-10-30",
+    images: [
+      "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1543269865-cbf427effbad?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+    ],
+    tags: ["teacher-training", "professional-development", "education-quality", "capacity-building"],
+    beneficiaries: 250,
+    organization: "EduSync Foundation",
+    location: "Multiple States"
+  },
+  {
     id: 14,
-    title: "Mental Health Support",
-    summary: "Providing counseling and mental health services to communities in need.",
-    category: "healthcare",
-    targetAmount: 380000,
-    collectedAmount: 245000,
+    title: "Sports & Education Integration",
+    summary: "Integrating sports activities with academic learning to promote holistic development of students.",
+    category: "school-infrastructure",
+    targetAmount: 280000,
+    collectedAmount: 165000,
     deadline: "2024-11-20",
-    images: ["https://images.unsplash.com/photo-1559757175-0eb30cd8c063?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"],
-    tags: ["mental", "health", "counseling", "support"],
-    beneficiaries: 450,
-    organization: "Mental Wellness Foundation",
+    images: [
+      "https://images.unsplash.com/photo-1549060279-7e168fce7090?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+    ],
+    tags: ["sports", "holistic-education", "physical-education", "student-development"],
+    beneficiaries: 500,
+    organization: "EduSync Foundation",
     location: "Maharashtra"
   },
   {
     id: 15,
-    title: "Tree Plantation Drive",
-    summary: "Large-scale tree plantation to combat climate change and restore green cover.",
-    category: "environment",
-    targetAmount: 250000,
-    collectedAmount: 175000,
+    title: "Rural Science Labs",
+    summary: "Setting up basic science laboratories in rural schools to facilitate practical learning and experiments.",
+    category: "school-infrastructure",
+    targetAmount: 520000,
+    collectedAmount: 315000,
     deadline: "2024-12-10",
-    images: ["https://images.unsplash.com/photo-1574263867128-a3d5c1b1deae?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"],
-    tags: ["tree", "plantation", "environment", "climate"],
-    beneficiaries: 2000,
-    organization: "Green Earth Initiative",
-    location: "Haryana"
+    images: [
+      "https://images.unsplash.com/photo-1532094349884-543bc11b234d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+    ],
+    tags: ["science-labs", "practical-learning", "rural-education", "experiments"],
+    beneficiaries: 600,
+    organization: "EduSync Foundation",
+    location: "Madhya Pradesh"
   },
   {
     id: 16,
-    title: "Child Nutrition Program",
-    summary: "Providing nutritious meals and supplements to malnourished children in urban slums.",
-    category: "healthcare",
-    targetAmount: 320000,
-    collectedAmount: 195000,
+    title: "Digital Literacy for Parents",
+    summary: "Training parents in digital skills to help them support their children's online education journey.",
+    category: "digital-learning",
+    targetAmount: 220000,
+    collectedAmount: 125000,
     deadline: "2024-09-15",
-    images: ["https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"],
-    tags: ["child", "nutrition", "health", "food"],
-    beneficiaries: 500,
-    organization: "Child Nutrition Trust",
-    location: "West Bengal"
+    images: [
+      "https://images.unsplash.com/photo-1584697964358-3e14ca57658b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+    ],
+    tags: ["digital-literacy", "parent-training", "family-support", "community-education"],
+    beneficiaries: 400,
+    organization: "EduSync Foundation",
+    location: "Urban Slums"
   },
   {
     id: 17,
-    title: "Rural Library Project",
-    summary: "Setting up libraries in rural areas to promote reading and access to knowledge.",
-    category: "education",
-    targetAmount: 280000,
-    collectedAmount: 165000,
+    title: "Mobile Library Van",
+    summary: "Operating mobile library vans to reach remote villages and promote reading culture among children.",
+    category: "school-infrastructure",
+    targetAmount: 320000,
+    collectedAmount: 185000,
     deadline: "2024-10-25",
-    images: ["https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"],
-    tags: ["library", "books", "education", "rural"],
+    images: [
+      "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+    ],
+    tags: ["mobile-library", "reading-culture", "remote-areas", "book-access"],
     beneficiaries: 800,
-    organization: "Knowledge for All",
-    location: "Odisha"
+    organization: "EduSync Foundation",
+    location: "Himalayan Region"
   },
   {
     id: 18,
-    title: "Women Safety Initiative",
-    summary: "Creating safe spaces and self-defense training for women in urban areas.",
-    category: "women-empowerment",
-    targetAmount: 350000,
+    title: "Entrepreneurship Education",
+    summary: "Teaching entrepreneurship skills and business fundamentals to college and university students.",
+    category: "skill-development",
+    targetAmount: 380000,
     collectedAmount: 220000,
     deadline: "2024-11-05",
-    images: ["https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"],
-    tags: ["women", "safety", "empowerment", "self-defense"],
-    beneficiaries: 350,
-    organization: "Women Safety Alliance",
-    location: "Delhi"
+    images: [
+      "https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1543269865-cbf427effbad?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+    ],
+    tags: ["entrepreneurship", "business-skills", "startup", "innovation"],
+    beneficiaries: 200,
+    organization: "EduSync Foundation",
+    location: "Metro Cities"
   },
   {
     id: 19,
-    title: "Marine Conservation",
-    summary: "Protecting marine life and coastal ecosystems through conservation efforts.",
-    category: "environment",
-    targetAmount: 480000,
-    collectedAmount: 310000,
+    title: "Girls in Tech Program",
+    summary: "Encouraging and supporting girls to pursue careers in technology through specialized training and mentorship.",
+    category: "girl-education",
+    targetAmount: 450000,
+    collectedAmount: 275000,
     deadline: "2024-12-28",
-    images: ["https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"],
-    tags: ["marine", "conservation", "ocean", "environment"],
+    images: [
+      "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+    ],
+    tags: ["girls-in-tech", "women-in-stem", "technology", "gender-diversity"],
     beneficiaries: 150,
-    organization: "Marine Life Foundation",
-    location: "Goa"
+    organization: "EduSync Foundation",
+    location: "Multiple Locations"
   },
   {
     id: 20,
-    title: "Special Needs Education",
-    summary: "Providing specialized education and support for children with special needs.",
-    category: "education",
-    targetAmount: 400000,
-    collectedAmount: 265000,
+    title: "After-School Tutoring Program",
+    summary: "Providing free after-school tutoring and academic support to students struggling with their studies.",
+    category: "mentorship",
+    targetAmount: 290000,
+    collectedAmount: 165000,
     deadline: "2024-11-25",
-    images: ["https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"],
-    tags: ["special", "needs", "education", "support"],
-    beneficiaries: 120,
-    organization: "Inclusive Education Trust",
-    location: "Karnataka"
+    images: [
+      "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1543269865-cbf427effbad?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80"
+    ],
+    tags: ["tutoring", "academic-support", "after-school", "remedial-education"],
+    beneficiaries: 350,
+    organization: "EduSync Foundation",
+    location: "Urban Poor Communities"
   }
 ];
+
+import image1 from './p 1.avif';
+import image2 from './image 2.jpg';
+import image3 from './image 3.avif';
+import image4 from './image 4.jpg'
+
+
+export  {
+  image1,
+  image2,
+  image3,
+  image4
+};

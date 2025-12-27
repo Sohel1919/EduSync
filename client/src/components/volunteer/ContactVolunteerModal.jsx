@@ -22,12 +22,15 @@ export default function ContactVolunteerModal({ isOpen, onClose, volunteer }) {
   const [currentStep, setCurrentStep] = useState(1);
 
   const problemTypes = [
-    'Education Issue',
-    'Technical Problem',
-    'Healthcare Question',
-    'Document Help',
-    'Resource Finding',
-    'Other'
+    'Academic Support Needed',
+    'Scholarship Guidance',
+    'Career Counseling',
+    'Study Material Request',
+    'Subject-specific Help',
+    'College Admission Guidance',
+    'Skill Development',
+    'Digital Learning Support',
+    'Other Educational Need'
   ];
 
   const handleSubmit = async (e) => {
@@ -37,8 +40,8 @@ export default function ContactVolunteerModal({ isOpen, onClose, volunteer }) {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    console.log('Problem submitted to volunteer:', {
-      volunteer: volunteer?.name,
+    console.log('Educational support requested from mentor:', {
+      mentor: volunteer?.name,
       ...formData
     });
     
@@ -105,7 +108,7 @@ export default function ContactVolunteerModal({ isOpen, onClose, volunteer }) {
                     alt={volunteer.name}
                   />
                   <div>
-                    <h3 className="text-2xl font-bold text-white">Get Help from {volunteer.name}</h3>
+                    <h3 className="text-2xl font-bold text-white">Get Educational Support from {volunteer.name}</h3>
                     <p className="text-primary-100">{volunteer.role}</p>
                     <div className="flex items-center text-primary-200 text-sm mt-1">
                       <ClockIcon className="h-4 w-4 mr-1" />
@@ -144,7 +147,7 @@ export default function ContactVolunteerModal({ isOpen, onClose, volunteer }) {
                     className="space-y-6"
                   >
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-900 mb-2">Your Information</h4>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-2">Student Information</h4>
                       <p className="text-gray-600">Let's start with your basic details</p>
                     </div>
 
@@ -152,7 +155,7 @@ export default function ContactVolunteerModal({ isOpen, onClose, volunteer }) {
                       <div className="space-y-2">
                         <label className="flex items-center text-sm font-medium text-gray-700">
                           <UserIcon className="h-4 w-4 mr-2 text-primary-600" />
-                          Your Name *
+                          Student/Parent Name *
                         </label>
                         <input
                           type="text"
@@ -161,7 +164,7 @@ export default function ContactVolunteerModal({ isOpen, onClose, volunteer }) {
                           value={formData.name}
                           onChange={handleChange}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-200"
-                          placeholder="Enter your full name"
+                          placeholder="Enter student or parent name"
                         />
                       </div>
 
@@ -177,7 +180,7 @@ export default function ContactVolunteerModal({ isOpen, onClose, volunteer }) {
                           value={formData.email}
                           onChange={handleChange}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-200"
-                          placeholder="your@email.com"
+                          placeholder="student@example.com"
                         />
                       </div>
                     </div>
@@ -201,13 +204,13 @@ export default function ContactVolunteerModal({ isOpen, onClose, volunteer }) {
                     className="space-y-6"
                   >
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-900 mb-2">Describe Your Problem</h4>
-                      <p className="text-gray-600">Help {volunteer.name} understand how they can assist you</p>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-2">Describe Your Educational Need</h4>
+                      <p className="text-gray-600">Help {volunteer.name} understand how they can support your learning journey</p>
                     </div>
 
                     <div className="space-y-6">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Problem Type *</label>
+                        <label className="text-sm font-medium text-gray-700">Support Type Needed *</label>
                         <select
                           name="problemType"
                           required
@@ -215,7 +218,7 @@ export default function ContactVolunteerModal({ isOpen, onClose, volunteer }) {
                           onChange={handleChange}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-200 appearance-none bg-white"
                         >
-                          <option value="">Select problem type</option>
+                          <option value="">Select type of support needed</option>
                           {problemTypes.map((type) => (
                             <option key={type} value={type}>{type}</option>
                           ))}
@@ -226,9 +229,9 @@ export default function ContactVolunteerModal({ isOpen, onClose, volunteer }) {
                         <label className="text-sm font-medium text-gray-700">Urgency Level</label>
                         <div className="grid grid-cols-3 gap-3">
                           {[
-                            { value: 'low', label: 'Low', desc: 'Can wait' },
-                            { value: 'medium', label: 'Medium', desc: 'Need soon' },
-                            { value: 'high', label: 'High', desc: 'Urgent' }
+                            { value: 'low', label: 'Low', desc: 'General guidance' },
+                            { value: 'medium', label: 'Medium', desc: 'Important deadline' },
+                            { value: 'high', label: 'High', desc: 'Urgent academic need' }
                           ].map((level) => (
                             <label key={level.value} className="relative">
                               <input
@@ -259,7 +262,7 @@ export default function ContactVolunteerModal({ isOpen, onClose, volunteer }) {
                       <div className="space-y-2">
                         <label className="flex items-center text-sm font-medium text-gray-700">
                           <ChatBubbleBottomCenterTextIcon className="h-4 w-4 mr-2 text-primary-600" />
-                          Problem Description *
+                          Detailed Description *
                         </label>
                         <textarea
                           name="problemDescription"
@@ -268,7 +271,7 @@ export default function ContactVolunteerModal({ isOpen, onClose, volunteer }) {
                           value={formData.problemDescription}
                           onChange={handleChange}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all duration-200 resize-none"
-                          placeholder="Please describe your problem in detail. Include any specific challenges, what you've tried already, and what outcome you're hoping for..."
+                          placeholder="Please describe your educational need in detail. Include grade level, subjects, specific challenges, and your learning goals..."
                         />
                       </div>
 
@@ -283,6 +286,7 @@ export default function ContactVolunteerModal({ isOpen, onClose, volunteer }) {
                           <option value="email">Email</option>
                           <option value="phone">Phone Call</option>
                           <option value="video">Video Call</option>
+                          <option value="whatsapp">WhatsApp</option>
                         </select>
                       </div>
                     </div>
@@ -305,10 +309,10 @@ export default function ContactVolunteerModal({ isOpen, onClose, volunteer }) {
                               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
-                            Sending...
+                            Sending Request...
                           </>
                         ) : (
-                          'Send Request'
+                          'Request Educational Support'
                         )}
                       </button>
                     </div>
@@ -324,9 +328,9 @@ export default function ContactVolunteerModal({ isOpen, onClose, volunteer }) {
                     <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                       <CheckCircleIcon className="h-10 w-10 text-white" />
                     </div>
-                    <h4 className="text-2xl font-bold text-gray-900 mb-2">Request Sent!</h4>
+                    <h4 className="text-2xl font-bold text-gray-900 mb-2">Support Request Sent!</h4>
                     <p className="text-gray-600 mb-6">
-                      Your problem has been shared with {volunteer.name}. They will contact you via {formData.preferredContact} within {volunteer.responseTime}.
+                      Your educational support request has been shared with {volunteer.name}. They will contact you via {formData.preferredContact} within {volunteer.responseTime}.
                     </p>
                     <button
                       onClick={handleClose}

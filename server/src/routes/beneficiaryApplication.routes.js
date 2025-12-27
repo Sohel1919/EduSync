@@ -1,3 +1,4 @@
+// routes/beneficiary.routes.js (add these routes)
 import express from 'express';
 import {
   createBeneficiaryApplication,
@@ -8,8 +9,13 @@ import {
   deleteBeneficiaryApplication,
   getAllBeneficiaryApplications,
   bulkUpdateBeneficiaryStatus,
-  getVolunteerProjectBeneficiaries // NEW
+  getVolunteerProjectBeneficiaries
 } from '../controllers/beneficiaryApplication.controller.js';
+import {
+  getBeneficiaryDashboard,
+  getBeneficiaryStats,
+  getBeneficiaryProjects
+} from '../controllers/beneficiaryDashboard.controller.js'; // NEW
 import { authenticate } from '../middlewares/authMiddleware.js';
 import multer from 'multer';
 
@@ -44,6 +50,11 @@ const uploadFields = upload.fields([
 // Apply authentication to all routes
 router.use(authenticate);
 
+// BENEFICIARY DASHBOARD ROUTES (NEW) - Add these before other routes
+router.get('/dashboard', getBeneficiaryDashboard);
+router.get('/dashboard/stats', getBeneficiaryStats);
+router.get('/dashboard/projects', getBeneficiaryProjects); // For filtering and pagination
+
 // Create beneficiary application
 router.post('/applications', uploadFields, createBeneficiaryApplication);
 
@@ -63,7 +74,7 @@ router.patch('/:beneficiaryId/status', updateBeneficiaryStatus);
 router.delete('/:beneficiaryId', deleteBeneficiaryApplication);
 
 // VOLUNTEER ROUTES - Get beneficiary applications for volunteer's projects
-router.get('/volunteer/my-projects/applications', getVolunteerProjectBeneficiaries); // NEW
+router.get('/volunteer/my-projects/applications', getVolunteerProjectBeneficiaries);
 
 // ADMIN ROUTES
 // Get all beneficiary applications (Admin only)

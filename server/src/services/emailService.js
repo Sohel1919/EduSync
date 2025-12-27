@@ -25,7 +25,7 @@ export const sendVerificationEmail = async (email, name, token) => {
     DEVELOPMENT EMAIL VERIFICATION
     ===============================
     To: ${email}
-    Subject: Verify Your Email - CareSync
+    Subject: Verify Your Email - EduSync
     Name: ${name}
     Verification Code: ${token}
     ===============================
@@ -35,9 +35,9 @@ export const sendVerificationEmail = async (email, name, token) => {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'CareSync <onboarding@resend.dev>',
+      from: 'EduSync <onboarding@resend.dev>',
       to: email,
-      subject: 'Verify Your Email - CareSync',
+      subject: 'Verify Your Email - EduSync',
       html: `
         <!DOCTYPE html>
         <html>
@@ -55,19 +55,19 @@ export const sendVerificationEmail = async (email, name, token) => {
         <body>
           <div class="container">
             <div class="header">
-              <h1>Welcome to CareSync!</h1>
+              <h1>Welcome to EduSync!</h1>
             </div>
             <div class="content">
               <h2>Hello ${name},</h2>
-              <p>Thank you for registering with CareSync. Please use the verification code below to verify your email address:</p>
+              <p>Thank you for registering with EduSync. Please use the verification code below to verify your email address:</p>
               <div class="code">${token}</div>
               <div class="warning">
                 <strong>Note:</strong> This code will expire in 1 hour.
               </div>
-              <p>If you didn't create an account with CareSync, please ignore this email.</p>
+              <p>If you didn't create an account with EduSync, please ignore this email.</p>
             </div>
             <div class="footer">
-              <p>&copy; 2024 CareSync. All rights reserved.</p>
+              <p>&copy; 2024 EduSync. All rights reserved.</p>
             </div>
           </div>
         </body>
@@ -123,7 +123,7 @@ export const sendPasswordResetEmail = async (email, name, resetToken) => {
     DEVELOPMENT PASSWORD RESET
     ===============================
     To: ${email}
-    Subject: Reset Your Password - CareSync
+    Subject: Reset Your Password - EduSync
     Name: ${name}
     Reset URL: ${resetUrl}
     ===============================
@@ -133,9 +133,9 @@ export const sendPasswordResetEmail = async (email, name, resetToken) => {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'CareSync <onboarding@resend.dev>',
+      from: 'EduSync <onboarding@resend.dev>',
       to: email,
-      subject: 'Reset Your Password - CareSync',
+      subject: 'Reset Your Password - EduSync',
       html: `
         <!DOCTYPE html>
         <html>
@@ -156,7 +156,7 @@ export const sendPasswordResetEmail = async (email, name, resetToken) => {
             </div>
             <div class="content">
               <h2>Hello ${name},</h2>
-              <p>We received a request to reset your password for your CareSync account.</p>
+              <p>We received a request to reset your password for your EduSync account.</p>
               <p>Click the button below to reset your password:</p>
               <div style="text-align: center;">
                 <a href="${resetUrl}" class="button">Reset Password</a>

@@ -14,13 +14,13 @@ import {
 import { projectsAPI } from '../../services/apiService';
 
 const categories = [
-  { id: 'all', name: 'All Projects' },
-  { id: 'education', name: 'Education' },
-  { id: 'healthcare', name: 'Healthcare' },
-  { id: 'empowerment', name: 'Empowerment' },
-  { id: 'environment', name: 'Environment' },
-  { id: 'animal-welfare', name: 'Animal Welfare' },
-  { id: 'disaster-relief', name: 'Disaster Relief' }
+  { id: 'all', name: 'All Programs' },
+  { id: 'digital-learning', name: 'Digital Learning' }, 
+  { id: 'scholarship', name: 'Scholarship Assistance' },
+  { id: 'mentorship', name: 'Mentorship Program' },
+  { id: 'skill-development', name: 'Skill Development' },
+  { id: 'school-infrastructure', name: 'School Infrastructure' },
+  { id: 'girl-education', name: 'Girl Education' }
 ];
 
 const ITEMS_PER_PAGE = 12;
@@ -222,7 +222,7 @@ export default function ProjectsPage() {
         {loading ? (
           <Loader 
             type="page" 
-            message="Loading projects..." 
+            message="Loading educational programs..." 
             size="large"
           />
         ) : (
@@ -234,10 +234,10 @@ export default function ProjectsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">Our Projects</h1>
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">Our Educational Programs</h1>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Discover meaningful causes and make a difference through your support. 
-                Every contribution helps us create lasting change.
+                Discover meaningful educational initiatives that transform lives through learning, mentorship, and skill development. 
+                Every contribution helps us create brighter futures for underprivileged students.
               </p>
             </motion.div>
 
@@ -273,7 +273,7 @@ export default function ProjectsPage() {
                     <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                     <input
                       type="text"
-                      placeholder="Search projects..."
+                      placeholder="Search programs..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-600 focus:border-transparent outline-none transition-all"
@@ -353,7 +353,7 @@ export default function ProjectsPage() {
               )}
             </motion.div>
 
-            {/* Projects Count and Pagination Info */}
+            {/* Programs Count and Pagination Info */}
             <motion.div 
               className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
               initial={{ opacity: 0 }}
@@ -361,7 +361,7 @@ export default function ProjectsPage() {
             >
               <div className="text-gray-600">
                 Showing {Math.min(startIndex + 1, filteredProjects.length)}-
-                {Math.min(startIndex + ITEMS_PER_PAGE, filteredProjects.length)} of {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
+                {Math.min(startIndex + ITEMS_PER_PAGE, filteredProjects.length)} of {filteredProjects.length} program{filteredProjects.length !== 1 ? 's' : ''}
                 {selectedCategory !== 'all' && (
                   <span> in <strong>{categories.find(cat => cat.id === selectedCategory)?.name}</strong></span>
                 )}
@@ -374,7 +374,7 @@ export default function ProjectsPage() {
               )}
             </motion.div>
 
-            {/* Projects Grid */}
+            {/* Programs Grid */}
             <motion.div 
               className={`grid gap-8 ${
                 viewMode === 'grid' 
@@ -405,11 +405,11 @@ export default function ProjectsPage() {
                 animate={{ opacity: 1 }}
               >
                 <div className="text-gray-300 text-8xl mb-6">🔍</div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">No projects found</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">No programs found</h3>
                 <p className="text-gray-600 max-w-md mx-auto mb-6">
                   {searchTerm 
-                    ? `No projects match your search for "${searchTerm}". Try different keywords or browse all categories.`
-                    : `No projects available in this category at the moment. Check back soon for new initiatives.`
+                    ? `No programs match your search for "${searchTerm}". Try different keywords or browse all categories.`
+                    : `No programs available in this category at the moment. Check back soon for new educational initiatives.`
                   }
                 </p>
                 {(searchTerm || selectedCategory !== 'all') && (
@@ -420,7 +420,7 @@ export default function ProjectsPage() {
                     }}
                     className="bg-primary-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-primary-700 transition-colors"
                   >
-                    Browse All Projects
+                    Browse All Programs
                   </button>
                 )}
               </motion.div>

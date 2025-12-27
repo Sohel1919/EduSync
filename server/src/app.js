@@ -15,6 +15,8 @@ import beneficiaryApplicationRoutes from './routes/beneficiaryApplication.routes
 import notificationRoutes from './routes/notification.routes.js';
 import projectRequestRoutes from './routes/projectRequest.routes.js';
 import donationRoutes from './routes/donation.routes.js';
+import donorDashboardRoutes from './routes/donorDashboard.routes.js';
+import volunteerApplicationRoutes from './routes/volunteerApplication.routes.js';
 
 const app = express();
 
@@ -36,6 +38,8 @@ app.use('/api/beneficiaries', beneficiaryApplicationRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/project-requests', projectRequestRoutes);
 app.use('/api/donations', donationRoutes);
+app.use('/api/donor-dashboard', donorDashboardRoutes);
+app.use('/api/volunteer-applications', volunteerApplicationRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

@@ -13,6 +13,7 @@ export default function DonationPage() {
   const [donationStats, setDonationStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [apiStatus, setApiStatus] = useState('checking');
+  const [processingPayment, setProcessingPayment] = useState(false);
 
   useEffect(() => {
     checkApiStatus();
@@ -48,10 +49,19 @@ export default function DonationPage() {
   };
 
   const handleDonationSuccess = (paymentData) => {
+    setProcessingPayment(false);
     setSuccessData(paymentData);
     setShowSuccess(true);
-    // Refresh stats after successful donation
     fetchDonationStats();
+  };
+
+  const handleDonationProcessing = () => {
+    setProcessingPayment(true);
+  };
+
+  const handleDonationError = (error) => {
+    setProcessingPayment(false);
+    toast.error(error.message || 'Donation failed. Please try again.');
   };
 
   const formatNumber = (num) => {
@@ -59,7 +69,7 @@ export default function DonationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* API Status Indicator */}
         {apiStatus === 'error' && (
@@ -67,6 +77,22 @@ export default function DonationPage() {
             <p className="text-yellow-800">
               ⚠️ Unable to connect to server. Please make sure the backend is running on port 5000.
             </p>
+          </div>
+        )}
+
+        {/* Global Payment Processing Overlay */}
+        {processingPayment && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600 mx-auto mb-4"></div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Processing Your Donation</h3>
+              <p className="text-gray-600 mb-4">
+                Please wait while we complete your donation process...
+              </p>
+              <div className="text-sm text-gray-500">
+                Do not refresh or close this window
+              </div>
+            </div>
           </div>
         )}
 
@@ -78,11 +104,11 @@ export default function DonationPage() {
           className="text-center mb-12"
         >
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Support Our Mission
+            Empower Students Through Education
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Your donation helps us create lasting change through education, healthcare, 
-            and economic empowerment programs in underserved communities.
+            Your donation provides educational resources, scholarships, mentorship, and digital learning 
+            opportunities to underprivileged and rural students across India.
           </p>
         </motion.div>
 
@@ -122,7 +148,11 @@ export default function DonationPage() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
             >
-              <DonationForm onDonationSuccess={handleDonationSuccess} />
+              <DonationForm 
+                onDonationSuccess={handleDonationSuccess}
+                onDonationProcessing={handleDonationProcessing}
+                onDonationError={handleDonationError}
+              />
             </motion.div>
           ) : (
             <motion.div
@@ -145,7 +175,6 @@ export default function DonationPage() {
           className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto"
         >
           {loading ? (
-            // Loading skeleton
             Array.from({ length: 3 }).map((_, index) => (
               <div key={index} className="text-center">
                 <div className="text-3xl font-bold text-gray-300 mb-2 animate-pulse">•••••</div>
@@ -156,15 +185,15 @@ export default function DonationPage() {
             [
               { 
                 number: `${formatNumber(donationStats.total?.donors || 0)}+`, 
-                label: 'Lives Impacted' 
+                label: 'Students Supported' 
               },
               { 
                 number: `${formatNumber(donationStats.total?.donations || 0)}+`, 
-                label: 'Donations Made' 
+                label: 'Educational Kits Distributed' 
               },
               { 
                 number: `₹${formatNumber(donationStats.total?.amount || 0)}+`, 
-                label: 'Total Funds Raised' 
+                label: 'Scholarship Funds Raised' 
               }
             ].map((stat, index) => (
               <div key={index} className="text-center">
@@ -173,11 +202,10 @@ export default function DonationPage() {
               </div>
             ))
           ) : (
-            // Fallback stats if API fails
             [
-              { number: '10,000+', label: 'Lives Impacted' },
-              { number: '50+', label: 'Communities Served' },
-              { number: '₹5M+', label: 'Total Funds Raised' }
+              { number: '15,000+', label: 'Students Supported' },
+              { number: '45,000+', label: 'Educational Kits Distributed' },
+              { number: '₹8.5M+', label: 'Scholarship Funds Raised' }
             ].map((stat, index) => (
               <div key={index} className="text-center">
                 <div className="text-3xl font-bold text-primary-600 mb-2">{stat.number}</div>

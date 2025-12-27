@@ -15,7 +15,7 @@ import {
   emitDonationStatsUpdate 
 } from '../utils/socket.js';
 
-// @desc    Create donation order
+// @desc    Create education donation order
 // @route   POST /api/donations/create-order
 // @access  Private
 const createDonationOrder = async (req, res) => {
@@ -32,17 +32,17 @@ const createDonationOrder = async (req, res) => {
     const userId = req.user._id;
 
     // Validate amount
-    if (!amount || amount < 10) {
+    if (!amount || amount < 100) {
       return res.status(400).json({
         success: false,
-        message: 'Amount must be at least ₹10'
+        message: 'Amount must be at least ₹100'
       });
     }
 
     // Create Razorpay order
     const order = await createOrder(amount);
 
-    // Create donation record
+    // Create education donation record
     const donationData = {
       donor: userId,
       amount: amount,
@@ -66,7 +66,7 @@ const createDonationOrder = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Create order error:', error);
+    console.error('Create education donation order error:', error);
     
     if (error.message.includes('Razorpay payment gateway is not configured')) {
       return res.status(503).json({
@@ -77,12 +77,12 @@ const createDonationOrder = async (req, res) => {
 
     res.status(500).json({
       success: false,
-      message: 'Failed to create payment order'
+      message: 'Failed to create education donation order'
     });
   }
 };
 
-// @desc    Verify payment
+// @desc    Verify education donation payment
 // @route   POST /api/donations/verify-payment
 // @access  Private
 const verifyPayment = async (req, res) => {
@@ -107,7 +107,7 @@ const verifyPayment = async (req, res) => {
       await updateDonationStatus(razorpay_order_id, 'failed');
       return res.status(400).json({
         success: false,
-        message: 'Payment verification failed'
+        message: 'Education donation payment verification failed'
       });
     }
 
@@ -139,7 +139,7 @@ const verifyPayment = async (req, res) => {
         donationId: donation._id,
         amount: donation.amount,
         cause: donation.causeName,
-        donorName: donation.donor_info.isAnonymous ? 'Anonymous' : donation.donor_info.name,
+        donorName: donation.donor_info.isAnonymous ? 'Anonymous Education Supporter' : donation.donor_info.name,
         timestamp: new Date()
       });
 
@@ -165,7 +165,7 @@ const verifyPayment = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Payment verified successfully',
+      message: 'Education donation payment verified successfully',
       donation: {
         id: donation._id,
         amount: donation.amount,
@@ -175,15 +175,15 @@ const verifyPayment = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Payment verification error:', error);
+    console.error('Education donation payment verification error:', error);
     res.status(500).json({
       success: false,
-      message: 'Payment verification failed'
+      message: 'Education donation payment verification failed'
     });
   }
 };
 
-// @desc    Get user donation history
+// @desc    Get user education donation history
 // @route   GET /api/donations/my-donations
 // @access  Private
 const getUserDonations = async (req, res) => {
@@ -200,15 +200,15 @@ const getUserDonations = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get user donations error:', error);
+    console.error('Get user education donations error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch donation history'
+      message: 'Failed to fetch education donation history'
     });
   }
 };
 
-// @desc    Get all donations (Admin only)
+// @desc    Get all education donations (Admin only)
 // @route   GET /api/donations/admin/all
 // @access  Private/Admin
 const getAdminDonations = async (req, res) => {
@@ -230,21 +230,20 @@ const getAdminDonations = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get all donations error:', error);
+    console.error('Get all education donations error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch donations'
+      message: 'Failed to fetch education donations'
     });
   }
 };
 
-// @desc    Get donation statistics
+// @desc    Get education donation statistics
 // @route   GET /api/donations/statistics
 // @access  Private
-// Update the getStatistics function in donation.controller.js
 const getStatistics = async (req, res) => {
   try {
-    console.log('Fetching donation statistics...');
+    console.log('Fetching education donation statistics...');
 
     // Get basic counts
     const [totalDonations, completedDonations, pendingDonations, failedDonations] = await Promise.all([
@@ -262,7 +261,7 @@ const getStatistics = async (req, res) => {
     
     const totalAmount = totalAmountResult.length > 0 ? totalAmountResult[0].total : 0;
 
-    // Get payment method distribution - ensure we have data
+    // Get payment method distribution
     const paymentMethods = await Donation.aggregate([
       { $match: { status: 'completed', payment_method: { $exists: true, $ne: null } } },
       { 
@@ -272,7 +271,7 @@ const getStatistics = async (req, res) => {
           amount: { $sum: '$amount' } 
         } 
       },
-      { $match: { _id: { $ne: null } } }, // Exclude null values
+      { $match: { _id: { $ne: null } } },
       { $sort: { count: -1 } }
     ]);
 
@@ -300,7 +299,7 @@ const getStatistics = async (req, res) => {
       { $sort: { '_id.year': 1, '_id.month': 1 } }
     ]);
 
-    // Get cause distribution for additional insights
+    // Get education program distribution
     const causeDistribution = await Donation.aggregate([
       { $match: { status: 'completed' } },
       { 
@@ -329,20 +328,20 @@ const getStatistics = async (req, res) => {
       }
     };
 
-    console.log('Statistics response prepared');
+    console.log('Education donation statistics response prepared');
     res.json(response);
 
   } catch (error) {
-    console.error('Get statistics error:', error);
+    console.error('Get education donation statistics error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch statistics',
+      message: 'Failed to fetch education donation statistics',
       error: error.message
     });
   }
 };
 
-// Helper functions for default data (only used if no real data exists)
+// Helper functions for default data
 const getDefaultPaymentMethods = () => {
   return [
     { _id: 'upi', count: 0, amount: 0 },
@@ -368,7 +367,7 @@ const getDefaultMonthlyData = () => {
   return data;
 };
 
-// @desc    Get donation by ID
+// @desc    Get education donation by ID
 // @route   GET /api/donations/:id
 // @access  Private
 const getDonationById = async (req, res) => {
@@ -380,7 +379,7 @@ const getDonationById = async (req, res) => {
     if (!donation) {
       return res.status(404).json({
         success: false,
-        message: 'Donation not found'
+        message: 'Education donation not found'
       });
     }
 
@@ -398,10 +397,10 @@ const getDonationById = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get donation error:', error);
+    console.error('Get education donation error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch donation'
+      message: 'Failed to fetch education donation'
     });
   }
 };
@@ -441,10 +440,9 @@ const getAdminStatistics = async (req, res) => {
     ]);
     const totalAmount = totalAmountResult[0]?.total || 0;
 
-    // Calculate recurring donations (you might need to add a recurring field to your model)
+    // Calculate recurring education donations
     const recurringDonations = await Donation.countDocuments({ 
       status: 'completed',
-      // Add logic to identify recurring donations if you have that field
     });
 
     // Get payment method distribution
@@ -453,7 +451,7 @@ const getAdminStatistics = async (req, res) => {
       { $group: { _id: '$payment_method', count: { $sum: 1 }, amount: { $sum: '$amount' } } }
     ]);
 
-    // Get monthly donation data for chart
+    // Get monthly education donation data for chart
     const monthlyData = await Donation.aggregate([
       {
         $match: {
@@ -474,7 +472,7 @@ const getAdminStatistics = async (req, res) => {
       { $sort: { '_id.year': 1, '_id.month': 1 } }
     ]);
 
-    // Get cause distribution
+    // Get education program distribution
     const causeDistribution = await Donation.aggregate([
       { $match: { status: 'completed' } },
       { $group: { _id: '$cause', count: { $sum: 1 }, amount: { $sum: '$amount' } } }
@@ -496,15 +494,15 @@ const getAdminStatistics = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get admin statistics error:', error);
+    console.error('Get admin education donation statistics error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch statistics'
+      message: 'Failed to fetch education donation statistics'
     });
   }
 };
 
-// @desc    Generate donation receipt
+// @desc    Generate education donation receipt
 // @route   GET /api/donations/:id/receipt
 // @access  Private
 const generateReceipt = async (req, res) => {
@@ -516,7 +514,7 @@ const generateReceipt = async (req, res) => {
     if (!donation) {
       return res.status(404).json({
         success: false,
-        message: 'Donation not found'
+        message: 'Education donation not found'
       });
     }
 
@@ -528,9 +526,9 @@ const generateReceipt = async (req, res) => {
       });
     }
 
-    // Generate receipt data (you can integrate with a PDF generation service here)
+    // Generate education receipt data
     const receiptData = {
-      receiptId: `REC-${donation._id.toString().slice(-8).toUpperCase()}`,
+      receiptId: `EDU-${donation._id.toString().slice(-8).toUpperCase()}`,
       donationId: donation._id,
       donorName: donation.donor_info?.name || donation.donor.name,
       donorEmail: donation.donor_info?.email || donation.donor.email,
@@ -545,22 +543,17 @@ const generateReceipt = async (req, res) => {
       isAnonymous: donation.donor_info?.isAnonymous || false
     };
 
-    // If you want to generate actual PDF receipts, you can integrate with:
-    // - pdfkit
-    // - puppeteer
-    // - a dedicated PDF service
-
     res.json({
       success: true,
       receipt: receiptData,
-      downloadUrl: `/api/donations/${donation._id}/receipt/pdf` // Optional: PDF download endpoint
+      downloadUrl: `/api/donations/${donation._id}/receipt/pdf`
     });
 
   } catch (error) {
-    console.error('Generate receipt error:', error);
+    console.error('Generate education donation receipt error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to generate receipt'
+      message: 'Failed to generate education donation receipt'
     });
   }
 };
@@ -575,5 +568,4 @@ export {
   generateReceipt,
   getAdminStatistics,
   getAllDonations,
-  
 };
