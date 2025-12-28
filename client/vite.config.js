@@ -4,13 +4,11 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   base: '/',
   plugins: [react()],
+  css: {
+    postcss: './postcss.config.js',
+  },
   build: {
-    // Add these build optimizations
-    cssCodeSplit: false,
-    rollupOptions: {
-      output: {
-        manualChunks: undefined,
-      },
-    },
+    // Add this to ensure CSS is processed
+    cssMinify: true,
   },
 })

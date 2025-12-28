@@ -3,9 +3,6 @@ export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
-    // Remove these incorrect paths:
-    // "./client/index.html",                
-    // "./client/src/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: 'class',
   theme: {
