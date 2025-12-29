@@ -1,7 +1,7 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "CareSync",
+  "description": "EduSync",
   "main": "src/server.js",
   "type": "module",
   "scripts": {
@@ -10,7 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "CareSync"
+    "EduSync"
   ],
   "author": "shaikh sohel",
   "license": "ISC",
