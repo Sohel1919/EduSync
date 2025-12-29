@@ -1,10 +1,12 @@
 /** @type {import('tailwindcss').Config} */
+import path from 'path';
+
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx,html}",
-    "./src/*.{js,ts,jsx,tsx,html}",
-    "./**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{js,ts,jsx,tsx}",
+    // Add these two lines to be safe
+    path.join(__dirname, "./src/**/*.{js,ts,jsx,tsx}"),
   ],
   darkMode: 'class',
   theme: {
