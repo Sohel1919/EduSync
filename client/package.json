@@ -1,8 +1,11 @@
 {
-  "name": "caresync-client",
+  "name": "edusync-client",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
   "proxy": "http://localhost:5000",
   "scripts": {
     "dev": "vite",
