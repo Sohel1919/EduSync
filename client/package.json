@@ -6,7 +6,6 @@
   "sideEffects": [
     "**/*.css"
   ],
-  "proxy": "http://localhost:5000",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
