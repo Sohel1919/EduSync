@@ -1,773 +1,669 @@
-import VolunteerApplication from '../models/volunteerApplication.model.js';
+import ProjectRequest from '../models/projectRequest.model.js';
+import Project from '../models/project.model.js';
 import User from '../models/user.model.js';
-import Volunteer from '../models/volunteer.model.js';
+import Notification from '../models/notification.model.js';
 import { uploadToCloudinary, deleteFromCloudinary } from '../utils/cloudinary.js';
-import mongoose from 'mongoose';
-import {
-  sendApplicationSubmittedEmail,
-  sendInterviewScheduledEmail,
-  sendApplicationApprovedEmail,
-  sendApplicationRejectedEmail,
-  sendApplicationDeletedEmail
-} from '../services/volunteerApplicationEmailService.js';
+import { emitNotification, emitNotificationToAdmins } from '../utils/socket.js';
 
-// Helper function to handle file uploads
-const uploadDocument = async (file, folder = 'volunteer-documents') => {
-  if (!file) return null;
-  
-  try {
-    const result = await uploadToCloudinary(file.buffer, folder);
-    return {
-      url: result.secure_url,
-      publicId: result.public_id,
-      originalName: file.originalname,
-      size: file.size
-    };
-  } catch (error) {
-    console.error('Error uploading document:', error);
-    throw new Error(`Failed to upload ${file.originalname}`);
-  }
-};
-
-// Create new volunteer application
-export const createVolunteerApplication = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    
-    // Check if user already has a pending application
-    const existingApplication = await VolunteerApplication.findOne({
-      user: userId,
-      status: { $in: ['pending', 'under-review', 'shortlisted'] }
-    });
-    
-    if (existingApplication) {
-      return res.status(409).json({
-        success: false,
-        message: 'You already have a volunteer application in progress'
-      });
-    }
-    
-    // Parse form data
-    const {
-      personalInfo,
-      contactInfo,
-      educationInfo,
-      professionalInfo,
-      volunteerInfo,
-      additionalInfo,
-      appliedAs = 'volunteer',
-      applicationType = 'join-our-team',
-      projectId,
-      projectTitle
-    } = JSON.parse(req.body.data || '{}');
-    
-    // Upload documents
-    const documents = {
-      resume: null,
-      idProof: null,
-      addressProof: null,
-      otherDocuments: []
-    };
-    
-    if (req.files?.resume?.[0]) {
-      documents.resume = await uploadDocument(req.files.resume[0], 'volunteer-resumes');
-    }
-    
-    if (req.files?.idProof?.[0]) {
-      documents.idProof = await uploadDocument(req.files.idProof[0], 'volunteer-id-proofs');
-    }
-    
-    if (req.files?.addressProof?.[0]) {
-      documents.addressProof = await uploadDocument(req.files.addressProof[0], 'volunteer-address-proofs');
-    }
-    
-    if (req.files?.otherDocuments) {
-      for (const file of req.files.otherDocuments) {
-        const uploadedDoc = await uploadDocument(file, 'volunteer-other-documents');
-        documents.otherDocuments.push(uploadedDoc);
-      }
-    }
-    
-    // Validate required documents
-    if (!documents.resume || !documents.idProof) {
-      return res.status(400).json({
-        success: false,
-        message: 'Resume and ID proof are required'
-      });
-    }
-    
-    // Create application
-    const application = new VolunteerApplication({
-      user: userId,
-      applicationType,
-      project: projectId || null,
-      projectTitle: projectTitle || null,
-      personalInfo,
-      contactInfo,
-      educationInfo,
-      professionalInfo,
-      volunteerInfo,
-      additionalInfo,
-      documents
-    });
-    
-    await application.save();
-    
-    // Send confirmation email
-    await sendApplicationSubmittedEmail(application);
-    
-    res.status(201).json({
-      success: true,
-      message: 'Volunteer application submitted successfully',
-      data: {
-        applicationId: application._id,
-        status: application.status,
-        applicationDate: application.applicationDate
-      }
-    });
-    
-  } catch (error) {
-    console.error('Error creating volunteer application:', error);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to submit application'
-    });
-  }
-};
-
-// Get all volunteer applications (Admin only)
-export const getAllVolunteerApplications = async (req, res) => {
+// Create new project - UPDATED FOR NEW FIELDS
+export const createProject = async (req, res) => {
   try {
     const {
-      status,
-      applicationType,
-      startDate,
-      endDate,
-      search,
-      page = 1,
-      limit = 10,
-      sortBy = 'applicationDate',
-      sortOrder = 'desc'
-    } = req.query;
-    
-    const query = {};
-    
-    // Filter by status
-    if (status && status !== 'all') {
-      query.status = status;
-    }
-    
-    // Filter by application type
-    if (applicationType) {
-      query.applicationType = applicationType;
-    }
-    
-    // Filter by date range
-    if (startDate || endDate) {
-      query.applicationDate = {};
-      if (startDate) query.applicationDate.$gte = new Date(startDate);
-      if (endDate) query.applicationDate.$lte = new Date(endDate);
-    }
-    
-    // Search functionality
-    if (search) {
-      query.$or = [
-        { 'personalInfo.firstName': { $regex: search, $options: 'i' } },
-        { 'personalInfo.lastName': { $regex: search, $options: 'i' } },
-        { 'contactInfo.email': { $regex: search, $options: 'i' } },
-        { 'contactInfo.phone': { $regex: search, $options: 'i' } },
-        { 'personalInfo.idNumber': { $regex: search, $options: 'i' } }
-      ];
-    }
-    
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
-    
-    const applications = await VolunteerApplication.find(query)
-      .populate('user', 'name email phone profileImage')
-      .populate('reviewedBy', 'name email')
-      .populate('project', 'title organization')
-      .populate('interviewDetails.scheduledBy', 'name email')
-      .sort(sort)
-      .skip(skip)
-      .limit(parseInt(limit))
-      .lean();
-    
-    // Calculate total
-    const total = await VolunteerApplication.countDocuments(query);
-    
-    // Get unique statuses for filtering
-    const statusCounts = await VolunteerApplication.aggregate([
-      {
-        $group: {
-          _id: '$status',
-          count: { $sum: 1 }
-        }
-      }
-    ]);
-    
-    res.status(200).json({
-      success: true,
-      data: applications,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        pages: Math.ceil(total / parseInt(limit))
-      },
-      filters: {
-        statusCounts
-      }
-    });
-    
-  } catch (error) {
-    console.error('Error fetching volunteer applications:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch applications'
-    });
-  }
-};
+      title,
+      summary,
+      description,
+      category,
+      targetAmount,
+      collectedAmount,
+      deadline,
+      beneficiaries,
+      organization,
+      location,
+      tags,
+      images,
+      status = 'pending'
+    } = req.body;
 
-// Get single volunteer application
-export const getVolunteerApplicationById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid application ID'
-      });
-    }
-    
-    const application = await VolunteerApplication.findById(id)
-      .populate('user', 'name email phone profileImage')
-      .populate('reviewedBy', 'name email')
-      .populate('project', 'title organization')
-      .populate('interviewDetails.scheduledBy', 'name email');
-    
-    if (!application) {
+    console.log('Creating project with data:', {
+      title, category, targetAmount, deadline, organization, location
+    });
+
+    // Check if user exists
+    const user = await User.findById(req.user._id);
+    if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Application not found'
+        message: 'User not found'
       });
     }
+
+    // Create project with new fields
+    const projectData = {
+      title,
+      summary,
+      description,
+      category,
+      targetAmount: parseFloat(targetAmount),
+      collectedAmount: parseFloat(collectedAmount || 0),
+      deadline: new Date(deadline),
+      beneficiaries: parseInt(beneficiaries),
+      organization,
+      location,
+      tags: Array.isArray(tags) ? tags : JSON.parse(tags || '[]'),
+      images: Array.isArray(images) ? images : JSON.parse(images || '[]'),
+      status: req.user.role === 'admin' ? status : 'pending',
+      isApproved: req.user.role === 'admin' ? 'approved' : 'pending',
+      createdBy: req.user._id
+    };
+
+    console.log('Project data prepared:', projectData);
+
+    // Handle image upload if files are provided (for backward compatibility)
+    if (req.files && req.files.length > 0) {
+      try {
+        const uploadedImages = [];
+        for (const file of req.files) {
+          const uploadResult = await uploadToCloudinary(file.buffer, 'projects');
+          uploadedImages.push(uploadResult.secure_url);
+        }
+        projectData.images = [...projectData.images, ...uploadedImages];
+      } catch (uploadError) {
+        console.error('Image upload error:', uploadError);
+        return res.status(400).json({
+          success: false,
+          message: 'Failed to upload project images'
+        });
+      }
+    }
+
+    const project = new ProjectRequest(projectData);
+    await project.save();
+
+    // Populate createdBy field for response
+    await project.populate('createdBy', 'name email');
+
+    // Send notification to admin about new project submission
+    try {
+      // Find all admin users
+      const adminUsers = await User.find({ role: 'admin' });
+      
+      // Create notifications for all admins
+      const adminNotifications = adminUsers.map(admin => 
+        new Notification({
+          recipient: admin._id,
+          type: 'NEW_PROJECT_SUBMISSION',
+          title: 'New Project Submitted for Review',
+          message: `A new project "${title}" has been submitted for review by ${user.name}`,
+          data: {
+            projectId: project._id,
+            projectTitle: title,
+            submittedBy: user.name,
+            category: category
+          },
+          priority: 'high'
+        })
+      );
+
+      await Notification.insertMany(adminNotifications);
+
+      // Emit socket notification to admin room
+      emitNotificationToAdmins({
+        type: 'NEW_PROJECT_SUBMISSION',
+        title: 'New Project Submission',
+        message: `A new project "${title}" has been submitted for review`,
+        data: {
+          projectId: project._id,
+          projectTitle: title,
+          submittedBy: user.name,
+          category: category,
+          createdAt: new Date()
+        },
+        timestamp: new Date()
+      });
+
+      console.log(`Sent notifications to ${adminUsers.length} admins for new project submission`);
+
+    } catch (notificationError) {
+      console.error('Notification error:', notificationError);
+      // Don't fail the request if notification fails
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Project created successfully and submitted for approval',
+      data: project
+    });
+
+  } catch (error) {
+    console.error('Create project error details:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create project',
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+};
+
+// Admin: Approve/Reject project - UPDATED FOR NEW FIELDS
+export const updateProjectStatus = async (req, res) => {
+  try {
+    const { isApproved, rejectionReason } = req.body;
+    const projectId = req.params.id;
+
+    console.log(`Updating project status for ${projectId}:`, { isApproved, rejectionReason });
+
+    if (!['approved', 'rejected'].includes(isApproved)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status. Must be "approved" or "rejected"'
+      });
+    }
+
+    // Find the project request
+    const projectRequest = await ProjectRequest.findById(projectId)
+      .populate('createdBy', 'name email _id');
     
-    // Check if user is authorized to view this application
-    if (req.user.role !== 'admin' && application.user._id.toString() !== req.user.id) {
+    if (!projectRequest) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project request not found'
+      });
+    }
+
+    if (isApproved === 'approved') {
+      try {
+        // Create a new project in the main Project model with updated fields
+        const newProjectData = {
+          title: projectRequest.title,
+          summary: projectRequest.summary,
+          description: projectRequest.description,
+          category: projectRequest.category,
+          targetAmount: projectRequest.targetAmount,
+          collectedAmount: projectRequest.collectedAmount || 0,
+          deadline: projectRequest.deadline,
+          images: projectRequest.images || [],
+          tags: projectRequest.tags || [],
+          beneficiaries: projectRequest.beneficiaries,
+          organization: projectRequest.organization,
+          location: projectRequest.location,
+          status: 'active',
+          createdBy: projectRequest.createdBy._id
+        };
+
+        const newProject = new Project(newProjectData);
+        await newProject.save();
+
+        console.log('New project created in main Project model:', newProject._id);
+
+        // Update the project request status
+        projectRequest.isApproved = 'approved';
+        projectRequest.status = 'active';
+        projectRequest.rejectionReason = undefined;
+        await projectRequest.save();
+
+        // Send notification to project creator
+        try {
+          const notification = new Notification({
+            recipient: projectRequest.createdBy._id,
+            type: 'PROJECT_STATUS_UPDATE',
+            title: 'Project Approved! 🎉',
+            message: `Your project "${projectRequest.title}" has been successfully approved by admin and is now live on the platform!`,
+            data: {
+              projectId: newProject._id,
+              projectTitle: projectRequest.title,
+              status: 'approved'
+            },
+            priority: 'high'
+          });
+          await notification.save();
+
+          // Emit socket notification
+          emitNotification(projectRequest.createdBy._id.toString(), {
+            type: 'PROJECT_STATUS_UPDATE',
+            title: 'Project Approved! 🎉',
+            message: `Your project "${projectRequest.title}" has been successfully approved by admin and is now live!`,
+            data: {
+              projectId: newProject._id,
+              projectTitle: projectRequest.title,
+              status: 'approved'
+            },
+            timestamp: new Date()
+          });
+
+          console.log('Approval notification sent to project creator');
+
+        } catch (notificationError) {
+          console.error('Approval notification error:', notificationError);
+        }
+
+        res.json({
+          success: true,
+          message: 'Project approved successfully and added to live projects',
+          data: {
+            projectRequest,
+            newProjectId: newProject._id
+          }
+        });
+
+      } catch (projectCreationError) {
+        console.error('Error creating project in main model:', projectCreationError);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to create project in main database',
+          error: projectCreationError.message
+        });
+      }
+
+    } else if (isApproved === 'rejected') {
+      // Handle rejection
+      projectRequest.isApproved = 'rejected';
+      projectRequest.status = 'rejected';
+      projectRequest.rejectionReason = rejectionReason || 'No reason provided';
+      
+      await projectRequest.save();
+
+      // Send notification to project creator
+      try {
+        const notification = new Notification({
+          recipient: projectRequest.createdBy._id,
+          type: 'PROJECT_STATUS_UPDATE',
+          title: 'Project Rejected',
+          message: `Your project "${projectRequest.title}" has been rejected${rejectionReason ? `: ${rejectionReason}` : ''}. Please review the feedback and resubmit with necessary changes.`,
+          data: {
+            projectId: projectRequest._id,
+            projectTitle: projectRequest.title,
+            status: 'rejected',
+            rejectionReason: rejectionReason || 'No reason provided'
+          },
+          priority: 'high'
+        });
+        await notification.save();
+
+        // Emit socket notification
+        emitNotification(projectRequest.createdBy._id.toString(), {
+          type: 'PROJECT_STATUS_UPDATE',
+          title: 'Project Rejected',
+          message: `Your project "${projectRequest.title}" has been rejected${rejectionReason ? `: ${rejectionReason}` : ''}. Please review and resubmit.`,
+          data: {
+            projectId: projectRequest._id,
+            projectTitle: projectRequest.title,
+            status: 'rejected',
+            rejectionReason
+          },
+          timestamp: new Date()
+        });
+
+        console.log('Rejection notification sent to project creator');
+
+      } catch (notificationError) {
+        console.error('Rejection notification error:', notificationError);
+      }
+
+      res.json({
+        success: true,
+        message: 'Project rejected successfully',
+        data: projectRequest
+      });
+    }
+
+  } catch (error) {
+    console.error('Update project status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update project status',
+      error: error.message
+    });
+  }
+};
+
+
+// Get all projects (with filtering and pagination) - UPDATED FOR NEW FIELDS
+export const getProjects = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      category,
+      status,
+      isApproved,
+      search,
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = req.query;
+
+    const filter = {};
+
+    // Add filters
+    if (category) filter.category = category;
+    if (status && status !== 'all') filter.status = status;
+    if (isApproved) filter.isApproved = isApproved;
+    
+    // Search filter
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { summary: { $regex: search, $options: 'i' } },
+        { organization: { $regex: search, $options: 'i' } },
+        { location: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // For non-admin users, only show approved projects or their own projects
+    if (req.user.role !== 'admin') {
+      filter.$or = [
+        { isApproved: 'approved' },
+        { createdBy: req.user._id }
+      ];
+    }
+
+    const sort = {};
+    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+    const projects = await ProjectRequest.find(filter)
+      .populate('createdBy', 'name email')
+      .sort(sort)
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .exec();
+
+    const total = await ProjectRequest.countDocuments(filter);
+
+    res.json({
+      success: true,
+      data: projects,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        totalProjects: total,
+        hasNext: page * limit < total,
+        hasPrev: page > 1
+      }
+    });
+
+  } catch (error) {
+    console.error('Get projects error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch projects',
+      error: error.message
+    });
+  }
+};
+
+// Get single project - UPDATED FOR NEW FIELDS
+export const getProject = async (req, res) => {
+  try {
+    const project = await ProjectRequest.findById(req.params.id)
+      .populate('createdBy', 'name email profileImage');
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found'
+      });
+    }
+
+    // Check if user can view this project
+    if (project.isApproved !== 'approved' && 
+        project.createdBy._id.toString() !== req.user._id.toString() &&
+        req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
         message: 'Access denied'
       });
     }
-    
-    res.status(200).json({
+
+    res.json({
       success: true,
-      data: application
+      data: project
     });
-    
+
   } catch (error) {
-    console.error('Error fetching application:', error);
+    console.error('Get project error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch application'
+      message: 'Failed to fetch project',
+      error: error.message
     });
   }
 };
 
-// Get applications for logged-in user
-export const getMyVolunteerApplications = async (req, res) => {
+// Update project - UPDATED FOR NEW FIELDS
+export const updateProject = async (req, res) => {
   try {
-    const applications = await VolunteerApplication.find({ user: req.user.id })
-      .populate('project', 'title organization')
-      .sort({ applicationDate: -1 });
-    
-    res.status(200).json({
-      success: true,
-      data: applications
-    });
-    
-  } catch (error) {
-    console.error('Error fetching user applications:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch applications'
-    });
-  }
-};
+    const project = await ProjectRequest.findById(req.params.id);
 
-// Update application status (Admin only) - NO VALIDATION WHEN APPROVING
-export const updateApplicationStatus = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status, rejectionReason, notes, interviewDetails } = req.body;
-    
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid application ID'
-      });
-    }
-    
-    const application = await VolunteerApplication.findById(id)
-      .populate('user', 'name email phone profileImage');
-    
-    if (!application) {
+    if (!project) {
       return res.status(404).json({
         success: false,
-        message: 'Application not found'
+        message: 'Project not found'
       });
     }
-    
-    // Validate status transition
-    const validStatuses = ['pending', 'under-review', 'shortlisted', 'interview-scheduled', 'approved', 'rejected', 'on-hold'];
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({
+
+    // Check if user owns the project or is admin
+    if (project.createdBy.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({
         success: false,
-        message: 'Invalid status'
+        message: 'Access denied. You can only update your own projects.'
       });
     }
-    
-    // Get admin user info
-    const adminUser = await User.findById(req.user.id);
-    const adminName = adminUser?.name || 'Admin Team';
-    
-    // Update application
-    application.status = status;
-    application.reviewedBy = req.user.id;
-    application.reviewDate = new Date();
-    
-    if (status === 'rejected' && rejectionReason) {
-      application.rejectionReason = rejectionReason;
+
+    const updates = { ...req.body };
+
+    // If non-admin is updating, reset approval status to pending
+    if (req.user.role !== 'admin') {
+      updates.isApproved = 'pending';
+      updates.status = 'pending';
     }
-    
-    if (notes) {
-      application.notes = notes;
+
+    // Handle multiple image uploads
+    if (req.files && req.files.length > 0) {
+      try {
+        const uploadedImages = [];
+        for (const file of req.files) {
+          const uploadResult = await uploadToCloudinary(file.buffer, 'projects');
+          uploadedImages.push(uploadResult.secure_url);
+        }
+        
+        // Combine existing images with new ones
+        const existingImages = project.images || [];
+        updates.images = [...existingImages, ...uploadedImages];
+      } catch (uploadError) {
+        console.error('Image upload error:', uploadError);
+        return res.status(400).json({
+          success: false,
+          message: 'Failed to upload project images'
+        });
+      }
     }
+
+    // Parse numeric fields
+    if (updates.targetAmount) updates.targetAmount = parseFloat(updates.targetAmount);
+    if (updates.collectedAmount) updates.collectedAmount = parseFloat(updates.collectedAmount);
+    if (updates.beneficiaries) updates.beneficiaries = parseInt(updates.beneficiaries);
+    if (updates.deadline) updates.deadline = new Date(updates.deadline);
     
-    if (status === 'interview-scheduled' && interviewDetails) {
-      application.interviewDetails = {
-        ...interviewDetails,
-        scheduledBy: req.user.id,
-        scheduledAt: new Date(),
-        status: 'scheduled'
-      };
-      
-      // Send interview scheduled email
-      await sendInterviewScheduledEmail(application, interviewDetails, adminName);
+    // Parse arrays
+    if (updates.tags && typeof updates.tags === 'string') {
+      updates.tags = JSON.parse(updates.tags);
     }
-    
-    if (status === 'approved') {
-  // Send approval email only
-  await sendApplicationApprovedEmail(application, adminName);
-}
-    
-    if (status === 'rejected') {
-      // Send rejection email
-      await sendApplicationRejectedEmail(application, adminName, rejectionReason);
+    if (updates.images && typeof updates.images === 'string') {
+      updates.images = JSON.parse(updates.images);
     }
-    
-    await application.save();
-    
-    res.status(200).json({
+
+    const updatedProject = await ProjectRequest.findByIdAndUpdate(
+      req.params.id,
+      updates,
+      { new: true, runValidators: true }
+    ).populate('createdBy', 'name email');
+
+    res.json({
       success: true,
-      message: `Application ${status} successfully`,
-      data: application
+      message: 'Project updated successfully',
+      data: updatedProject
     });
-    
+
   } catch (error) {
-    console.error('Error updating application status:', error);
+    console.error('Update project error:', error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Failed to update application status',
-      error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      message: 'Failed to update project',
+      error: error.message
     });
   }
 };
 
-// Update interview details
-export const updateInterviewDetails = async (req, res) => {
+// Delete project - UPDATED FOR NEW FIELDS
+export const deleteProject = async (req, res) => {
   try {
-    const { id } = req.params;
-    const interviewDetails = req.body;
-    
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid application ID'
-      });
-    }
-    
-    const application = await VolunteerApplication.findById(id);
-    
-    if (!application) {
+    const project = await ProjectRequest.findById(req.params.id);
+
+    if (!project) {
       return res.status(404).json({
         success: false,
-        message: 'Application not found'
+        message: 'Project not found'
       });
     }
-    
-    // Get admin user info
-    const adminUser = await User.findById(req.user.id);
-    const adminName = adminUser?.name || 'Admin Team';
-    
-    application.interviewDetails = {
-      ...interviewDetails,
-      scheduledBy: req.user.id,
-      scheduledAt: new Date(),
-      status: interviewDetails.status || 'scheduled'
-    };
-    
-    application.status = 'interview-scheduled';
-    application.reviewedBy = req.user.id;
-    application.reviewDate = new Date();
-    
-    await application.save();
-    
-    // Send interview scheduled/updated email
-    await sendInterviewScheduledEmail(application, interviewDetails, adminName);
-    
-    res.status(200).json({
+
+    // Check if user owns the project or is admin
+    if (project.createdBy.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. You can only delete your own projects.'
+      });
+    }
+
+    // Delete images from Cloudinary if they exist
+    if (project.images && project.images.length > 0) {
+      // Note: This assumes images are stored in Cloudinary with public_ids
+      // You may need to extract public_id from URLs or store them separately
+      console.log('Note: Implement image deletion for base64 images if needed');
+    }
+
+    await ProjectRequest.findByIdAndDelete(req.params.id);
+
+    res.json({
       success: true,
-      message: 'Interview details updated successfully',
-      data: application
+      message: 'Project deleted successfully'
     });
-    
+
   } catch (error) {
-    console.error('Error updating interview details:', error);
+    console.error('Delete project error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update interview details'
+      message: 'Failed to delete project',
+      error: error.message
     });
   }
 };
 
-// Add note to application (Admin only)
-export const addApplicationNote = async (req, res) => {
+// Delete rejected project (for project owner to delete their rejected project)
+export const deleteRejectedProject = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { note } = req.body;
-    
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid application ID'
-      });
-    }
-    
-    if (!note || note.trim() === '') {
-      return res.status(400).json({
-        success: false,
-        message: 'Note is required'
-      });
-    }
-    
-    const application = await VolunteerApplication.findById(id);
-    
-    if (!application) {
+    const projectRequest = await ProjectRequest.findById(req.params.id);
+
+    if (!projectRequest) {
       return res.status(404).json({
         success: false,
-        message: 'Application not found'
+        message: 'Project request not found'
       });
     }
-    
-    application.notes = application.notes 
-      ? `${application.notes}\n\n${new Date().toLocaleString()}: ${note}`
-      : `${new Date().toLocaleString()}: ${note}`;
-    
-    await application.save();
-    
-    res.status(200).json({
-      success: true,
-      message: 'Note added successfully',
-      data: application
-    });
-    
-  } catch (error) {
-    console.error('Error adding note:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to add note'
-    });
-  }
-};
 
-// Get application statistics (Admin only)
-export const getApplicationStats = async (req, res) => {
-  try {
-    const stats = await VolunteerApplication.aggregate([
-      {
-        $group: {
-          _id: '$status',
-          count: { $sum: 1 }
-        }
-      }
-    ]);
-    
-    const total = await VolunteerApplication.countDocuments();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const todayCount = await VolunteerApplication.countDocuments({
-      applicationDate: { $gte: today }
-    });
-    
-    const thisWeek = new Date();
-    thisWeek.setDate(thisWeek.getDate() - 7);
-    
-    const weekCount = await VolunteerApplication.countDocuments({
-      applicationDate: { $gte: thisWeek }
-    });
-    
-    const monthlyStats = await VolunteerApplication.aggregate([
-      {
-        $group: {
-          _id: {
-            year: { $year: '$applicationDate' },
-            month: { $month: '$applicationDate' }
-          },
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { '_id.year': -1, '_id.month': -1 } },
-      { $limit: 6 }
-    ]);
-    
-    // Get upcoming interviews
-    const upcomingInterviews = await VolunteerApplication.countDocuments({
-      status: 'interview-scheduled',
-      'interviewDetails.date': { $gte: new Date() }
-    });
-    
-    res.status(200).json({
-      success: true,
-      data: {
-        total,
-        today: todayCount,
-        thisWeek: weekCount,
-        upcomingInterviews,
-        statusStats: stats,
-        monthlyTrends: monthlyStats
-      }
-    });
-    
-  } catch (error) {
-    console.error('Error fetching application stats:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch application statistics'
-    });
-  }
-};
+    // Check if user owns the project request
+    if (projectRequest.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. You can only delete your own project requests.'
+      });
+    }
 
-// Delete volunteer application (Admin only)
-export const deleteVolunteerApplication = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { rejectionReason, sendRejectionEmail = false } = req.body;
-    
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    // Check if project is rejected
+    if (projectRequest.isApproved !== 'rejected') {
       return res.status(400).json({
         success: false,
-        message: 'Invalid application ID'
+        message: 'Only rejected projects can be deleted by the owner'
       });
     }
-    
-    const application = await VolunteerApplication.findById(id)
-      .populate('user', 'name email phone');
-    
-    if (!application) {
-      return res.status(404).json({
-        success: false,
-        message: 'Application not found'
-      });
+
+    // Delete images if needed
+    if (projectRequest.images && projectRequest.images.length > 0) {
+      console.log('Note: Implement image deletion for base64 images if needed');
     }
-    
-    // Get admin user info
-    const adminUser = await User.findById(req.user.id);
-    const adminName = adminUser?.name || 'Admin Team';
-    
-    // Send deletion email if requested
-    if (sendRejectionEmail && application.user?.email) {
-      await sendApplicationDeletedEmail(application, adminName, rejectionReason);
-    }
-    
-    // Delete files from Cloudinary
-    const deletePromises = [];
-    
-    if (application.documents?.resume?.publicId) {
-      deletePromises.push(deleteFromCloudinary(application.documents.resume.publicId));
-    }
-    
-    if (application.documents?.idProof?.publicId) {
-      deletePromises.push(deleteFromCloudinary(application.documents.idProof.publicId));
-    }
-    
-    if (application.documents?.addressProof?.publicId) {
-      deletePromises.push(deleteFromCloudinary(application.documents.addressProof.publicId));
-    }
-    
-    if (application.documents?.otherDocuments?.length > 0) {
-      application.documents.otherDocuments.forEach(doc => {
-        if (doc.publicId) {
-          deletePromises.push(deleteFromCloudinary(doc.publicId));
-        }
-      });
-    }
-    
-    // Wait for all file deletions
-    await Promise.all(deletePromises);
-    
-    // Delete application from database
-    await VolunteerApplication.findByIdAndDelete(id);
-    
-    res.status(200).json({
+
+    await ProjectRequest.findByIdAndDelete(req.params.id);
+
+    res.json({
       success: true,
-      message: 'Application deleted successfully'
+      message: 'Rejected project deleted successfully'
     });
-    
+
   } catch (error) {
-    console.error('Error deleting application:', error);
+    console.error('Delete rejected project error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to delete application'
+      message: 'Failed to delete rejected project',
+      error: error.message
     });
   }
 };
 
-// Export applications (Admin only)
-export const exportApplications = async (req, res) => {
+// Get user's projects
+export const getUserProjects = async (req, res) => {
   try {
-    const { startDate, endDate, status } = req.query;
-    
-    const query = {};
-    
-    if (status && status !== 'all') {
-      query.status = status;
-    }
-    
-    if (startDate || endDate) {
-      query.applicationDate = {};
-      if (startDate) query.applicationDate.$gte = new Date(startDate);
-      if (endDate) query.applicationDate.$lte = new Date(endDate);
-    }
-    
-    const applications = await VolunteerApplication.find(query)
-      .populate('user', 'name email')
-      .populate('reviewedBy', 'name')
-      .populate('project', 'title')
-      .lean();
-    
-    // Format data for CSV/Excel
-    const formattedData = applications.map(app => ({
-      'Application ID': app._id,
-      'Name': `${app.personalInfo?.firstName || ''} ${app.personalInfo?.lastName || ''}`,
-      'Email': app.contactInfo?.email || '',
-      'Phone': app.contactInfo?.phone || '',
-      'Date of Birth': app.personalInfo?.dateOfBirth ? new Date(app.personalInfo.dateOfBirth).toLocaleDateString() : '',
-      'Gender': app.personalInfo?.gender || '',
-      'Highest Education': app.educationInfo?.highestEducation || '',
-      'Field of Study': app.educationInfo?.fieldOfStudy || '',
-      'Employment Status': app.professionalInfo?.employmentStatus || '',
-      'Skills': app.professionalInfo?.skills?.join(', ') || '',
-      'Previous Experience': app.volunteerInfo?.previousVolunteerExperience || '',
-      'Why Volunteer': app.volunteerInfo?.whyVolunteer || '',
-      'Application Type': app.applicationType || '',
-      'Project': app.projectTitle || '',
-      'Status': app.status || '',
-      'Applied Date': app.applicationDate ? new Date(app.applicationDate).toLocaleDateString() : '',
-      'Reviewed By': app.reviewedBy?.name || '',
-      'Review Date': app.reviewDate ? new Date(app.reviewDate).toLocaleDateString() : '',
-      'Rejection Reason': app.rejectionReason || ''
-    }));
-    
-    res.status(200).json({
+    const projects = await ProjectRequest.find({ createdBy: req.user._id })
+      .populate('createdBy', 'name email')
+      .sort({ createdAt: -1 });
+
+    res.json({
       success: true,
-      data: formattedData,
-      count: applications.length
+      data: projects
     });
-    
+
   } catch (error) {
-    console.error('Error exporting applications:', error);
+    console.error('Get user projects error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to export applications'
+      message: 'Failed to fetch user projects',
+      error: error.message
     });
   }
 };
 
-// Get dashboard statistics for admin
-export const getAdminDashboardStats = async (req, res) => {
+// Get projects for admin (with pending approval)
+export const getAdminProjects = async (req, res) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
-    // Get application trends for last 30 days
-    const dailyApplications = await VolunteerApplication.aggregate([
-      {
-        $match: {
-          applicationDate: { $gte: thirtyDaysAgo }
-        }
-      },
-      {
-        $group: {
-          _id: {
-            date: { $dateToString: { format: "%Y-%m-%d", date: "$applicationDate" } }
-          },
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { '_id.date': 1 } },
-      { $limit: 30 }
-    ]);
-    
-    // Get status distribution
-    const statusDistribution = await VolunteerApplication.aggregate([
-      {
-        $group: {
-          _id: '$status',
-          count: { $sum: 1 }
-        }
-      }
-    ]);
-    
-    // Get today's applications
-    const todaysApplications = await VolunteerApplication.countDocuments({
-      applicationDate: { $gte: today }
-    });
-    
-    // Get pending applications
-    const pendingApplications = await VolunteerApplication.countDocuments({
-      status: { $in: ['pending', 'under-review'] }
-    });
-    
-    // Get upcoming interviews
-    const upcomingInterviews = await VolunteerApplication.countDocuments({
-      status: 'interview-scheduled',
-      'interviewDetails.date': { $gte: new Date() }
-    });
-    
-    res.status(200).json({
+    const { page = 1, limit = 10, status, isApproved } = req.query;
+
+    const filter = {};
+    if (status && status !== 'all') filter.status = status;
+    if (isApproved && isApproved !== 'all') filter.isApproved = isApproved;
+
+    const projects = await ProjectRequest.find(filter)
+      .populate('createdBy', 'name email')
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .exec();
+
+    const total = await ProjectRequest.countDocuments(filter);
+
+    res.json({
       success: true,
-      data: {
-        dailyApplications,
-        statusDistribution,
-        todaysApplications,
-        pendingApplications,
-        upcomingInterviews,
-        totalApplications: await VolunteerApplication.countDocuments()
+      data: projects,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        totalProjects: total
       }
     });
-    
+
   } catch (error) {
-    console.error('Error fetching dashboard stats:', error);
+    console.error('Get admin projects error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch dashboard statistics'
+      message: 'Failed to fetch admin projects',
+      error: error.message
     });
   }
 };

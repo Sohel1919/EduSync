@@ -1,19 +1,18 @@
 import express from 'express';
 import multer from 'multer';
 import {
-  createVolunteerApplication,
-  getAllVolunteerApplications,
-  getVolunteerApplicationById,
-  getMyVolunteerApplications,
-  updateApplicationStatus,
-  updateInterviewDetails,
-  addApplicationNote,
-  getApplicationStats,
-  deleteVolunteerApplication,
-  exportApplications,
-  getAdminDashboardStats
-} from '../controllers/volunteerApplication.controller.js';
-import { authenticate, authorizeAdmin } from '../middlewares/authMiddleware.js';
+  createProject,
+  getProjects,
+  getProject,
+  updateProject,
+  deleteProject,
+  updateProjectStatus,
+  getUserProjects,
+  getAdminProjects,
+  deleteRejectedProject
+} from '../controllers/projectRequest.controller.js';
+import { authenticate } from '../middlewares/authMiddleware.js';
+import { authorize } from '../middlewares/roleMiddleware.js';
 
 const router = express.Router();
 
@@ -22,51 +21,33 @@ const storage = multer.memoryStorage();
 const upload = multer({
   storage,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB max file size
-    files: 10 // Max 10 files
+    fileSize: 5 * 1024 * 1024 // 5MB limit
   },
   fileFilter: (req, file, cb) => {
-    const allowedMimeTypes = [
-      'image/jpeg',
-      'image/jpg',
-      'image/png',
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    ];
-    
-    if (allowedMimeTypes.includes(file.mimetype)) {
+    if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only images, PDFs, and Word documents are allowed.'));
+      cb(new Error('Only image files are allowed'), false);
     }
   }
 });
 
-// Public routes (authenticated users only)
-router.post(
-  '/apply',
-  authenticate,
-  upload.fields([
-    { name: 'resume', maxCount: 1 },
-    { name: 'idProof', maxCount: 1 },
-    { name: 'addressProof', maxCount: 1 },
-    { name: 'otherDocuments', maxCount: 5 }
-  ]),
-  createVolunteerApplication
-);
+// Public routes
+router.get('/', getProjects);
+router.get('/:id', getProject);
 
-router.get('/my-applications', authenticate, getMyVolunteerApplications);
-router.get('/:id', authenticate, getVolunteerApplicationById);
+// Protected routes
+router.use(authenticate);
+
+// User routes - UPDATED TO HANDLE MULTIPLE IMAGES
+router.post('/', upload.array('images', 5), createProject);
+router.get('/user/my-projects', getUserProjects);
+router.put('/:id', upload.array('images', 5), updateProject);
+router.delete('/:id', deleteProject);
+router.delete('/rejected/:id', deleteRejectedProject);
 
 // Admin routes
-router.get('/', authenticate, authorizeAdmin, getAllVolunteerApplications);
-router.patch('/:id/status', authenticate, authorizeAdmin, updateApplicationStatus);
-router.patch('/:id/interview', authenticate, authorizeAdmin, updateInterviewDetails);
-router.post('/:id/notes', authenticate, authorizeAdmin, addApplicationNote);
-router.get('/stats/overview', authenticate, authorizeAdmin, getApplicationStats);
-router.get('/stats/dashboard', authenticate, authorizeAdmin, getAdminDashboardStats);
-router.get('/export/applications', authenticate, authorizeAdmin, exportApplications);
-router.delete('/:id', authenticate, authorizeAdmin, deleteVolunteerApplication);
+router.patch('/:id/status', authorize('admin'), updateProjectStatus);
+router.get('/admin/all-projects', authorize('admin'), getAdminProjects);
 
 export default router;

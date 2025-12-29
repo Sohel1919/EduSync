@@ -4,33 +4,21 @@ import {
   XMarkIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  CheckIcon,
-  PhotoIcon
+  CheckIcon
 } from '@heroicons/react/24/outline';
-import { FaUser, FaMapMarkerAlt, FaCalendar, FaUsers, FaBuilding, FaBullseye } from 'react-icons/fa';
-import { projectRequestsAPI } from '../../../services/apiService.js';
+import { FaImage, FaTag, FaCalendar, FaMapMarkerAlt, FaUsers, FaRupeeSign, FaBuilding, FaFileAlt } from 'react-icons/fa';
+import { projectRequestsAPI } from '../../../services/apiService';
 import { showToast } from '../../../utils/toast';
 
 const categories = [
-  { value: 'education', label: 'Education' },
-  { value: 'healthcare', label: 'Healthcare' },
-  { value: 'empowerment', label: 'Empowerment' },
-  { value: 'environment', label: 'Environment' },
-  { value: 'disaster-relief', label: 'Disaster Relief' },
-  { value: 'animal-welfare', label: 'Animal Welfare' },
-  { value: 'elderly-care', label: 'Elderly Care' },
-  { value: 'child-development', label: 'Child Development' }
-];
-
-const tagsOptions = [
-  { value: 'urgent', label: 'Urgent' },
-  { value: 'community', label: 'Community' },
-  { value: 'sustainable', label: 'Sustainable' },
-  { value: 'innovative', label: 'Innovative' },
-  { value: 'grassroots', label: 'Grassroots' },
-  { value: 'education', label: 'Education' },
-  { value: 'health', label: 'Health' },
-  { value: 'environment', label: 'Environment' }
+  { value: 'digital-learning', label: 'Digital Learning' },
+  { value: 'scholarship', label: 'Scholarship Assistance' },
+  { value: 'mentorship', label: 'Mentorship Program' },
+  { value: 'skill-development', label: 'Skill Development' },
+  { value: 'school-infrastructure', label: 'School Infrastructure' },
+  { value: 'girl-education', label: 'Girl Education' },
+  { value: 'after-school', label: 'After School Program' },
+  { value: 'vocational-training', label: 'Vocational Training' }
 ];
 
 const initialFormData = {
@@ -39,47 +27,43 @@ const initialFormData = {
   description: '',
   category: 'education',
   targetAmount: '',
+  collectedAmount: '',
   deadline: '',
+  images: [],
+  tags: [],
   beneficiaries: '',
   organization: '',
   location: '',
-  tags: [],
-  projectImageFile: null
+  status: 'pending' // Volunteer projects start as pending for approval
 };
 
 const steps = [
-  { id: 1, title: 'Basic Info', icon: FaUser },
-  { id: 2, title: 'Project Details', icon: FaBullseye },
+  { id: 1, title: 'Basic Info', icon: FaFileAlt },
+  { id: 2, title: 'Project Details', icon: FaRupeeSign },
   { id: 3, title: 'Organization', icon: FaBuilding },
-  { id: 4, title: 'Additional Info', icon: FaUsers }
+  { id: 4, title: 'Media & Tags', icon: FaImage }
 ];
 
 export default function VolunteerProjectForm({ project, onSave, onClose, refreshProjects }) {
   const [formData, setFormData] = useState(initialFormData);
   const [currentStep, setCurrentStep] = useState(1);
+  const [newTag, setNewTag] = useState('');
+  const [imagePreviews, setImagePreviews] = useState([]);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedTags, setSelectedTags] = useState([]);
-  const [imagePreview, setImagePreview] = useState('');
 
   useEffect(() => {
     if (project) {
-      const projectData = {
+      setFormData({
         ...project,
         targetAmount: project.targetAmount?.toString() || '',
+        collectedAmount: project.collectedAmount?.toString() || '',
         beneficiaries: project.beneficiaries?.toString() || '',
         deadline: project.deadline ? new Date(project.deadline).toISOString().split('T')[0] : '',
-        tags: project.tags || [],
-        projectImageFile: null
-      };
-      setFormData(projectData);
-      setSelectedTags(project.tags || []);
-      if (project.projectImage) {
-        const imageUrl = typeof project.projectImage === 'string' 
-          ? project.projectImage 
-          : project.projectImage?.url;
-        setImagePreview(imageUrl);
-      }
+        images: project.images || [],
+        tags: project.tags || []
+      });
+      setImagePreviews(project.images || []);
     }
   }, [project]);
 
@@ -94,58 +78,54 @@ export default function VolunteerProjectForm({ project, onSave, onClose, refresh
     }
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-      if (!validTypes.includes(file.type)) {
-        showToast.error('Please select a valid image file (JPEG, PNG, GIF, WebP)');
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length + imagePreviews.length > 5) {
+      showToast.error('Maximum 5 images allowed');
+      return;
+    }
+
+    files.forEach(file => {
+      if (!file.type.startsWith('image/')) {
+        showToast.error('Please upload only image files');
         return;
       }
-
-      if (file.size > 5 * 1024 * 1024) {
-        showToast.error('Image size should be less than 5MB');
-        return;
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        projectImageFile: file
-      }));
 
       const reader = new FileReader();
       reader.onload = (e) => {
-        setImagePreview(e.target.result);
+        setImagePreviews(prev => [...prev, e.target.result]);
+        setFormData(prev => ({
+          ...prev,
+          images: [...prev.images, e.target.result]
+        }));
       };
       reader.readAsDataURL(file);
-    }
+    });
   };
 
-  const removeImage = () => {
+  const removeImage = (index) => {
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
     setFormData(prev => ({
       ...prev,
-      projectImageFile: null
+      images: prev.images.filter((_, i) => i !== index)
     }));
-    setImagePreview('');
-    const fileInput = document.getElementById('projectImageUpload');
-    if (fileInput) {
-      fileInput.value = '';
+  };
+
+  const addTag = () => {
+    if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, newTag.trim()]
+      }));
+      setNewTag('');
     }
   };
 
-  const handleTagToggle = (tagValue) => {
-    setSelectedTags(prev => {
-      const newTags = prev.includes(tagValue)
-        ? prev.filter(t => t !== tagValue)
-        : [...prev, tagValue];
-      
-      setFormData(prevData => ({
-        ...prevData,
-        tags: newTags
-      }));
-      
-      return newTags;
-    });
+  const removeTag = (tagToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(tag => tag !== tagToRemove)
+    }));
   };
 
   const validateCurrentStep = () => {
@@ -211,94 +191,77 @@ export default function VolunteerProjectForm({ project, onSave, onClose, refresh
     setIsSubmitting(true);
 
     try {
-      // Create FormData for file upload
-      const submitFormData = new FormData();
-      
-      // Append all form fields
-      submitFormData.append('title', formData.title.trim());
-      submitFormData.append('summary', formData.summary.trim());
-      submitFormData.append('description', formData.description.trim());
-      submitFormData.append('category', formData.category);
-      submitFormData.append('targetAmount', formData.targetAmount);
-      submitFormData.append('deadline', formData.deadline);
-      submitFormData.append('beneficiaries', formData.beneficiaries);
-      submitFormData.append('organization', formData.organization.trim());
-      submitFormData.append('location', formData.location.trim());
-      submitFormData.append('tags', JSON.stringify(selectedTags));
-      
-      // Append project image file if exists
-      if (formData.projectImageFile) {
-        submitFormData.append('projectImage', formData.projectImageFile);
-      }
-
-      console.log('Submitting project request data:', {
-        title: formData.title,
+      // Prepare data for API - ensure proper data types
+      const submitData = {
+        title: formData.title.trim(),
+        summary: formData.summary.trim(),
+        description: formData.description.trim(),
         category: formData.category,
-        targetAmount: formData.targetAmount,
-        hasImage: !!formData.projectImageFile
-      });
+        targetAmount: parseFloat(formData.targetAmount),
+        collectedAmount: parseFloat(formData.collectedAmount || 0),
+        beneficiaries: parseInt(formData.beneficiaries),
+        deadline: new Date(formData.deadline).toISOString(),
+        images: formData.images,
+        tags: formData.tags,
+        organization: formData.organization.trim(),
+        location: formData.location.trim(),
+        status: project ? formData.status : 'pending' // New projects are pending
+      };
+
+      console.log('Submitting project request data:', submitData);
 
       let response;
       if (project) {
-        // Update existing project request
-        response = await projectRequestsAPI.update(project._id, submitFormData);
+        response = await projectRequestsAPI.update(project._id, submitData);
         showToast.success('Project request updated successfully!');
       } else {
-        // Create new project request
-        response = await projectRequestsAPI.create(submitFormData);
+        response = await projectRequestsAPI.create(submitData);
         showToast.success('Project request submitted successfully and waiting for approval!');
       }
 
-      console.log('API Response:', response);
-
+      if (onSave) onSave(response.data);
       if (refreshProjects) refreshProjects();
       onClose();
 
     } catch (error) {
       console.error('Error saving project request:', error);
       
-      // Extract error message from response
-      let errorMessage = project ? 'Failed to update project request' : 'Failed to create project request';
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      showToast.error(errorMessage);
-      
-      // For demo fallback (only if API is completely unavailable)
-      if (error.response?.status === 0 || error.code === 'NETWORK_ERROR') {
-        showToast.info('Using demo mode - Backend not connected');
-        const submitData = {
-          title: formData.title.trim(),
-          summary: formData.summary.trim(),
-          description: formData.description.trim(),
-          category: formData.category,
-          targetAmount: parseFloat(formData.targetAmount),
-          beneficiaries: parseInt(formData.beneficiaries),
-          deadline: new Date(formData.deadline).toISOString(),
-          organization: formData.organization.trim(),
-          location: formData.location.trim(),
-          tags: selectedTags,
-          _id: project?._id || `project-${Date.now()}`,
-          currentAmount: project?.currentAmount || 0,
-          progress: project?.progress || 0,
-          donors: project?.donors || 0,
-          isApproved: project?.isApproved || 'pending',
-          createdAt: project?.createdAt || new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-
-        if (onSave) onSave(submitData);
-        if (refreshProjects) refreshProjects();
-        onClose();
+      // Handle different error types
+      if (error.response?.status === 400) {
+        const serverError = error.response.data;
+        if (serverError.errors) {
+          // Handle validation errors from server
+          const fieldErrors = {};
+          serverError.errors.forEach(err => {
+            fieldErrors[err.path] = err.msg;
+          });
+          setErrors(fieldErrors);
+          showToast.error('Please check the form for errors');
+        } else {
+          showToast.error(serverError.message || 'Invalid data provided');
+        }
+      } else if (error.response?.status === 404) {
+        showToast.error('Server endpoint not found. Please check API configuration.');
+      } else if (error.code === 'NETWORK_ERROR') {
+        showToast.error('Network error. Please check your connection.');
+      } else {
+        showToast.error(error.response?.data?.message || 'Failed to save project request');
       }
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (currentStep === 4) {
+        addTag();
+      }
+    }
+  };
+
+  // Fix: Prevent form submission on Enter key in step navigation
   const handleFormKeyPress = (e) => {
     if (e.key === 'Enter' && currentStep < steps.length) {
       e.preventDefault();
@@ -384,77 +347,21 @@ export default function VolunteerProjectForm({ project, onSave, onClose, refresh
                   animate={{ opacity: 1, x: 0 }}
                   className="space-y-6"
                 >
-                  {/* Project Image Upload */}
-                  <div className="flex flex-col items-center">
-                    <div className="relative">
-                      <div className="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
-                        {imagePreview ? (
-                          <img 
-                            src={imagePreview} 
-                            alt="Project preview" 
-                            className="w-full h-full object-cover"
-                          />
-                        ) : project?.projectImage ? (
-                          <img 
-                            src={typeof project.projectImage === 'string' ? project.projectImage : project.projectImage.url} 
-                            alt="Current project" 
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <PhotoIcon className="h-12 w-12 text-gray-400" />
-                        )}
-                      </div>
-                      {(imagePreview || project?.projectImage) && (
-                        <button
-                          type="button"
-                          onClick={removeImage}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                        >
-                          <XMarkIcon className="h-4 w-4" />
-                        </button>
-                      )}
-                    </div>
-                    
-                    <div className="mt-4 text-center">
-                      <label
-                        htmlFor="projectImageUpload"
-                        className="cursor-pointer inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200"
-                      >
-                        <PhotoIcon className="h-4 w-4 mr-2" />
-                        {imagePreview || project?.projectImage ? 'Change Image' : 'Upload Project Image'}
-                      </label>
-                      <input
-                        id="projectImageUpload"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        disabled={isSubmitting}
-                        className="hidden"
-                      />
-                      <p className="text-xs text-gray-500 mt-2">
-                        JPG, PNG, GIF, WebP. Max 5MB.
-                      </p>
-                    </div>
-                  </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Project Title *
                     </label>
-                    <div className="relative">
-                      <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="text"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleInputChange}
-                        disabled={isSubmitting}
-                        className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 ${
-                          errors.title ? 'border-red-500' : 'border-gray-300'
-                        } ${isSubmitting ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                        placeholder="Enter project title"
-                      />
-                    </div>
+                    <input
+                      type="text"
+                      name="title"
+                      value={formData.title}
+                      onChange={handleInputChange}
+                      disabled={isSubmitting}
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 ${
+                        errors.title ? 'border-red-500' : 'border-gray-300'
+                      } ${isSubmitting ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                      placeholder="Enter project title"
+                    />
                     {errors.title && (
                       <p className="mt-1 text-sm text-red-600">{errors.title}</p>
                     )}
@@ -529,12 +436,32 @@ export default function VolunteerProjectForm({ project, onSave, onClose, refresh
                       </select>
                     </div>
 
+                    {project && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Status
+                        </label>
+                        <select
+                          name="status"
+                          value={formData.status}
+                          onChange={handleInputChange}
+                          disabled={isSubmitting}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="approved">Approved</option>
+                          <option value="rejected">Rejected</option>
+                          <option value="draft">Draft</option>
+                        </select>
+                      </div>
+                    )}
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Target Amount (₹) *
                       </label>
                       <div className="relative">
-                        <FaBullseye className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <FaRupeeSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         <input
                           type="number"
                           name="targetAmount"
@@ -551,6 +478,25 @@ export default function VolunteerProjectForm({ project, onSave, onClose, refresh
                       {errors.targetAmount && (
                         <p className="mt-1 text-sm text-red-600">{errors.targetAmount}</p>
                       )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Collected Amount (₹)
+                      </label>
+                      <div className="relative">
+                        <FaRupeeSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="number"
+                          name="collectedAmount"
+                          value={formData.collectedAmount}
+                          onChange={handleInputChange}
+                          disabled={isSubmitting}
+                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                          placeholder="0"
+                          min="0"
+                        />
+                      </div>
                     </div>
 
                     <div>
@@ -603,7 +549,7 @@ export default function VolunteerProjectForm({ project, onSave, onClose, refresh
                 </motion.div>
               )}
 
-              {/* Step 3: Organization Details */}
+              {/* Step 3: Organization */}
               {currentStep === 3 && (
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}
@@ -660,7 +606,7 @@ export default function VolunteerProjectForm({ project, onSave, onClose, refresh
                 </motion.div>
               )}
 
-              {/* Step 4: Additional Information */}
+              {/* Step 4: Media & Tags */}
               {currentStep === 4 && (
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}
@@ -669,75 +615,113 @@ export default function VolunteerProjectForm({ project, onSave, onClose, refresh
                 >
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Project Tags
+                      Project Images
                     </label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {tagsOptions.map((tag) => (
-                        <label
-                          key={tag.value}
-                          className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors duration-200 ${
-                            selectedTags.includes(tag.value)
-                              ? 'bg-primary-50 border-primary-500 text-primary-700'
-                              : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                          }`}
-                        >
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6">
+                        <label className="flex flex-col items-center justify-center cursor-pointer">
+                          <FaImage className="h-8 w-8 text-gray-400 mb-2" />
+                          <p className="text-sm text-gray-600">
+                            <span className="font-semibold">Click to upload</span> or drag and drop
+                          </p>
+                          <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5 images</p>
                           <input
-                            type="checkbox"
-                            checked={selectedTags.includes(tag.value)}
-                            onChange={() => handleTagToggle(tag.value)}
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            onChange={handleImageUpload}
                             disabled={isSubmitting}
                             className="hidden"
                           />
-                          <div className={`w-4 h-4 border rounded mr-3 flex items-center justify-center ${
-                            selectedTags.includes(tag.value)
-                              ? 'bg-primary-500 border-primary-500'
-                              : 'border-gray-300'
-                          }`}>
-                            {selectedTags.includes(tag.value) && (
-                              <CheckIcon className="h-3 w-3 text-white" />
-                            )}
-                          </div>
-                          <span className="text-sm">{tag.label}</span>
                         </label>
-                      ))}
+                      </div>
+
+                      {imagePreviews.length > 0 && (
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                          {imagePreviews.map((preview, index) => (
+                            <div key={index} className="relative">
+                              <img
+                                src={preview}
+                                alt={`Preview ${index + 1}`}
+                                className="w-full h-20 object-cover rounded-lg"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeImage(index)}
+                                disabled={isSubmitting}
+                                className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full text-xs"
+                              >
+                                <XMarkIcon className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Project Tags
+                    </label>
+                    <div className="space-y-3">
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                          <div className="relative">
+                            <FaTag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                            <input
+                              type="text"
+                              value={newTag}
+                              onChange={(e) => setNewTag(e.target.value)}
+                              onKeyPress={handleKeyPress}
+                              disabled={isSubmitting}
+                              placeholder="Add a tag"
+                              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                            />
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={addTag}
+                          disabled={isSubmitting}
+                          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
+                        >
+                          Add
+                        </button>
+                      </div>
+
+                      {formData.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {formData.tags.map((tag, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
+                            >
+                              {tag}
+                              <button
+                                type="button"
+                                onClick={() => removeTag(tag)}
+                                disabled={isSubmitting}
+                                className="ml-2 text-gray-500 hover:text-gray-700"
+                              >
+                                <XMarkIcon className="h-3 w-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Approval Notice for New Projects */}
                   {!project && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <h3 className="text-lg font-semibold text-blue-900 mb-2">Approval Process</h3>
-                      <p className="text-blue-700 text-sm">
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold text-yellow-900 mb-2">Approval Required</h3>
+                      <p className="text-yellow-700 text-sm">
                         Your project request will be submitted for admin approval. 
                         You will be notified once it's reviewed. 
-                        Project requests typically take 24-48 hours to be approved.
+                        Approved projects will appear on the platform for donations.
                       </p>
-                    </div>
-                  )}
-
-                  {project && (
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Project Statistics</h3>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="font-medium">Current Amount:</span> ₹{project.currentAmount || 0}
-                        </div>
-                        <div>
-                          <span className="font-medium">Progress:</span> {project.progress || 0}%
-                        </div>
-                        <div>
-                          <span className="font-medium">Donors:</span> {project.donors || 0}
-                        </div>
-                        <div>
-                          <span className="font-medium">Status:</span> 
-                          <span className={`ml-1 px-2 py-1 rounded-full text-xs ${
-                            project.isApproved === 'approved' ? 'bg-green-100 text-green-800' :
-                            project.isApproved === 'rejected' ? 'bg-red-100 text-red-800' :
-                            'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {project.isApproved || 'pending'}
-                          </span>
-                        </div>
-                      </div>
                     </div>
                   )}
                 </motion.div>
