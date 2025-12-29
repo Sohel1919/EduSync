@@ -23,7 +23,7 @@ const app = express();
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CLIENT_URI || 'https://edu-sync-two-zeta.vercel.app/',
+  origin: process.env.CLIENT_URI || 'https://edu-sync-two-zeta.vercel.app',
   credentials: true
 }));
 app.use(morgan('combined'));
