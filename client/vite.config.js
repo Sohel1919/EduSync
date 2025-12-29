@@ -8,9 +8,14 @@ export default defineConfig({
   css: {
     postcss: {
       plugins: [
-        tailwindcss,
-        autoprefixer,
+        tailwindcss(),
+        autoprefixer(),
       ],
     },
   },
+  build: {
+    // This ensures CSS is emitted as a separate file correctly
+    cssCodeSplit: true,
+    sourcemap: false,
+  }
 })
