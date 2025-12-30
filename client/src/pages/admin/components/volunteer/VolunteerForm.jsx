@@ -12,16 +12,15 @@ import { volunteersAPI } from '../../../../services/apiService.js';
 import { showToast } from '../../../../utils/toast';
 
 const skillsOptions = [
-  { value: 'teaching', label: 'Teaching' },
-  { value: 'medical', label: 'Medical' },
-  { value: 'construction', label: 'Construction' },
-  { value: 'counseling', label: 'Counseling' },
-  { value: 'technical', label: 'Technical' },
-  { value: 'administrative', label: 'Administrative' },
-  { value: 'fundraising', label: 'Fundraising' },
-  { value: 'cooking', label: 'Cooking' },
-  { value: 'driving', label: 'Driving' },
-  { value: 'language', label: 'Language Translation' }
+  { value: 'technical-support', label: 'Technical Support Specialist' },
+  { value: 'payment-support', label: 'Payment System Support' },
+  { value: 'donation-support', label: 'Donation Management Support' },
+  { value: 'beneficiary-support', label: 'Beneficiary Application Support' },
+  { value: 'volunteer-support', label: 'Volunteer Application Support' },
+  { value: 'mentoring', label: 'Student Mentor' },
+  { value: 'developer', label: 'Web Developer' },
+  { value: 'content-creation', label: 'Educational Content Creator' },
+  { value: 'community-outreach', label: 'Community Outreach Coordinator' }
 ];
 
 const availabilityOptions = [

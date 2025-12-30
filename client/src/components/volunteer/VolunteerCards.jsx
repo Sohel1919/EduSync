@@ -4,50 +4,186 @@ import {
   MapPinIcon, 
   StarIcon,
   ClockIcon,
-  CheckBadgeIcon
+  CheckBadgeIcon,
+  ComputerDesktopIcon,
+  CreditCardIcon,
+  BanknotesIcon,
+  UserGroupIcon,
+  UsersIcon,
+  AcademicCapIcon,
+  CodeBracketIcon,
+  PencilSquareIcon,
+  MegaphoneIcon,
+  FunnelIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
-export default function VolunteerCards({ volunteers = [], onContactVolunteer }) {
-  const [filter, setFilter] = useState('all');
+// Skills options with icons
+const skillsOptions = [
+  { id: 'all', label: 'All Volunteers', icon: UsersIcon },
+  { id: 'technical-support', label: 'Technical Support', icon: ComputerDesktopIcon },
+  { id: 'payment-support', label: 'Payment Support', icon: CreditCardIcon },
+  { id: 'donation-support', label: 'Donation Management', icon: BanknotesIcon },
+  { id: 'beneficiary-support', label: 'Beneficiary Support', icon: UserGroupIcon },
+  { id: 'volunteer-support', label: 'Volunteer Support', icon: UsersIcon },
+  { id: 'mentoring', label: 'Student Mentor', icon: AcademicCapIcon },
+  { id: 'developer', label: 'Web Developer', icon: CodeBracketIcon },
+  { id: 'content-creation', label: 'Content Creator', icon: PencilSquareIcon },
+  { id: 'community-outreach', label: 'Community Outreach', icon: MegaphoneIcon }
+];
 
-  const categories = [
-    { id: 'all', name: 'All Mentors' },
-    { id: 'academic', name: 'Academic Support' },
-    { id: 'career', name: 'Career Guidance' },
-    { id: 'scholarship', name: 'Scholarship' },
-    { id: 'stem', name: 'STEM Education' },
-    { id: 'language', name: 'Language Support' }
-  ];
+export default function VolunteerCards({ volunteers = [], onContactVolunteer }) {
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [showAllFilters, setShowAllFilters] = useState(false);
 
   const filteredVolunteers = volunteers.filter(volunteer => {
-    if (filter === 'all') return true;
-    return volunteer.expertise.some(exp => 
-      exp.toLowerCase().includes(filter.toLowerCase())
+    if (activeCategory === 'all') return true;
+    
+    // Check if volunteer has this skill in their expertise
+    return volunteer.expertise.some(skill => 
+      skill === activeCategory
     );
   });
 
+  // Get label for a skill
+  const getSkillLabel = (skillId) => {
+    const skill = skillsOptions.find(s => s.id === skillId);
+    return skill ? skill.label : skillId;
+  };
+
+  // Get visible categories (first 6 + more toggle)
+  const visibleCategories = showAllFilters ? skillsOptions : skillsOptions.slice(0, 6);
+  const hasHiddenCategories = skillsOptions.length > 6;
+
   return (
     <div>
-      {/* Category Filter */}
-      <div className="flex justify-center mb-12">
-        <div className="inline-flex rounded-lg border border-gray-200 p-1 bg-white">
-          {categories.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => setFilter(category.id)}
-              className={`px-6 py-3 text-sm font-medium rounded-md transition-colors ${
-                filter === category.id
-                  ? 'bg-primary-600 text-white shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              {category.name}
-            </button>
-          ))}
+      {/* Modern Filter Header */}
+      <div className="bg-gradient-to-r from-primary-50 to-secondary-50 rounded-2xl p-6 mb-8 border border-primary-100">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          {/* Left Section: Stats and Title */}
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="bg-primary-600 p-2 rounded-lg">
+                <FunnelIcon className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Find Your Perfect Volunteer</h2>
+                <p className="text-gray-600 text-sm mt-1">
+                  Filter by expertise area to find the right match
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4 text-sm">
+              <div className="bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm">
+                <span className="font-medium text-gray-700">Total Volunteers: </span>
+                <span className="font-bold text-primary-600 ml-1">{volunteers.length}</span>
+              </div>
+              <div className="bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm">
+                <span className="font-medium text-gray-700">Showing: </span>
+                <span className="font-bold text-primary-600 ml-1">{filteredVolunteers.length}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Section: Active Filter */}
+          {activeCategory !== 'all' && (
+            <div className="bg-white px-4 py-3 rounded-xl border border-primary-200 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="text-sm">
+                  <span className="text-gray-600">Active Filter:</span>
+                  <span className="font-semibold text-primary-700 ml-2">
+                    {getSkillLabel(activeCategory)}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setActiveCategory('all')}
+                  className="text-gray-400 hover:text-red-500 transition-colors"
+                  title="Clear filter"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Category Filter Chips */}
+        <div className="mt-6">
+          <div className="flex flex-wrap gap-3">
+            {visibleCategories.map((category) => {
+              const Icon = category.icon;
+              const count = category.id === 'all' 
+                ? volunteers.length 
+                : volunteers.filter(v => v.expertise.includes(category.id)).length;
+              
+              const isActive = activeCategory === category.id;
+              
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => setActiveCategory(category.id)}
+                  className={`
+                    group relative flex items-center gap-2 px-4 py-3 rounded-xl border transition-all duration-200
+                    ${isActive
+                      ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white shadow-lg border-transparent'
+                      : 'bg-white/80 backdrop-blur-sm border-gray-200 text-gray-700 hover:border-primary-300 hover:shadow-md hover:bg-white'
+                    }
+                  `}
+                >
+                  {/* Active indicator */}
+                  {isActive && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary-500 rounded-full border-2 border-white"></div>
+                  )}
+                  
+                  <Icon className={`
+                    h-5 w-5 transition-colors
+                    ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-primary-500'}
+                  `} />
+                  
+                  <span className="font-medium text-sm whitespace-nowrap">{category.label}</span>
+                  
+                  <span className={`
+                    inline-flex items-center justify-center h-6 min-w-6 px-1 text-xs font-medium rounded-full
+                    ${isActive
+                      ? 'bg-white/20 text-white'
+                      : 'bg-gray-100 text-gray-600 group-hover:bg-primary-50 group-hover:text-primary-600'
+                    }
+                  `}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+            
+            {/* Show More/Less Toggle */}
+            {hasHiddenCategories && (
+              <button
+                onClick={() => setShowAllFilters(!showAllFilters)}
+                className="flex items-center gap-2 px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 hover:border-primary-300 hover:text-primary-600 hover:shadow-md transition-all duration-200"
+              >
+                <span className="font-medium text-sm">
+                  {showAllFilters ? 'Show Less' : `+${skillsOptions.length - 6} More`}
+                </span>
+              </button>
+            )}
+          </div>
+          
+          {/* Filter Description */}
+          <div className="mt-4 text-sm text-gray-600">
+            {activeCategory === 'all' ? (
+              <p>Showing all volunteers across all skill categories</p>
+            ) : (
+              <p>
+                Showing <span className="font-semibold text-primary-600">{filteredVolunteers.length}</span> 
+                {' '}volunteers skilled in <span className="font-semibold text-primary-600">{getSkillLabel(activeCategory).toLowerCase()}</span>
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Volunteers Grid */}
+      {/* Original Card Design (Unchanged) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {filteredVolunteers.map((volunteer) => (
           <div
@@ -105,7 +241,7 @@ export default function VolunteerCards({ volunteers = [], onContactVolunteer }) 
                     className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-700 border border-primary-200"
                   >
                     <CheckBadgeIcon className="h-3 w-3 mr-1" />
-                    {area}
+                    {getSkillLabel(area)}
                   </span>
                 ))}
               </div>

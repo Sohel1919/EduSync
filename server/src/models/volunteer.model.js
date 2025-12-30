@@ -39,7 +39,17 @@ const volunteerSchema = new mongoose.Schema({
   },
   skills: [{
     type: String,
-    enum: ['teaching', 'medical', 'construction', 'counseling', 'technical', 'administrative', 'fundraising', 'cooking', 'driving', 'language']
+    enum: [
+      'technical-support',
+      'payment-support', 
+      'donation-support',
+      'beneficiary-support',
+      'volunteer-support',
+      'mentoring',
+      'developer',
+      'content-creation',
+      'community-outreach'
+    ]
   }],
   availability: {
     type: String,
