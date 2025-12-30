@@ -325,7 +325,17 @@ import image1 from './p 1.avif';
 import image2 from './image 2.jpg';
 import image3 from './image 3.avif';
 import image4 from './image 4.jpg'
+import pradeep from './pradeep.png';
+import sohel from './sohel.png';
+import shejal from './shejal.jpeg';
+import tryambak from './tryambak.jpeg';
 
+export const images = {
+  pradeep,
+  sohel,
+  shejal,
+  tryambak
+};
 
 export  {
   image1,

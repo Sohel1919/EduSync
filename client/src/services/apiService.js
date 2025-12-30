@@ -17,18 +17,9 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    // Log request for debugging
-    console.log('API Request:', {
-      url: config.url,
-      method: config.method,
-      headers: config.headers,
-      data: config.data
-    });
-    
     return config;
   },
   (error) => {
-    console.error('API Request Error:', error);
     return Promise.reject(error);
   }
 );
@@ -36,21 +27,9 @@ api.interceptors.request.use(
 // Handle auth errors and responses
 api.interceptors.response.use(
   (response) => {
-    console.log('API Response Success:', {
-      url: response.config.url,
-      status: response.status,
-      data: response.data
-    });
     return response;
   },
   (error) => {
-    console.error('API Response Error:', {
-      url: error.config?.url,
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message
-    });
-    
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/auth/signin';
@@ -62,7 +41,6 @@ api.interceptors.response.use(
 export const authAPI = {
   // Authentication
   register: (userData) => {
-    console.log('Register API call:', userData);
     return api.post('/auth/register', userData, {
       headers: {
         'Content-Type': 'multipart/form-data'
@@ -78,7 +56,6 @@ export const authAPI = {
   // Profile Management
   getProfile: () => api.get('/auth/profile'),
   updateProfile: (data) => {
-    console.log('Update Profile API call:', data);
     return api.put('/auth/profile', data, {
       headers: {
         'Content-Type': 'multipart/form-data'
@@ -233,7 +210,6 @@ export const volunteerApplicationsAPI = {
 export const beneficiariesAPI = {
   // Create beneficiary application with file upload
   create: (formData) => {
-    console.log('Creating beneficiary application:', formData);
     return api.post('/beneficiaries/applications', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',

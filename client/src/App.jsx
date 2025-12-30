@@ -148,10 +148,10 @@ const Layout = ({ children }) => {
 const adminNavigation = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: HomeIcon },
   { name: 'Projects', href: '/admin/projects', icon: FolderIcon },
-  { name: 'Project Requests', href: '/admin/project-requests', icon: DocumentTextIcon },
-  { name: 'Beneficiary Application', href: '/admin/beneficiary-application', icon: UserIcon },
   { name: 'Volunteers', href: '/admin/volunteers', icon: UserGroupIcon },
   { name: 'Donations', href: '/admin/donations', icon: CurrencyDollarIcon },
+  { name: 'Project Requests', href: '/admin/project-requests', icon: DocumentTextIcon },
+  { name: 'Beneficiary Application', href: '/admin/beneficiary-application', icon: UserIcon },
   { name: 'Volunteer Application', href: '/admin/volunteer-applications', icon: UserIcon}
 ];
 
@@ -159,7 +159,6 @@ const volunteerNavigation = [
   { name: 'Dashboard', href: '/volunteer/dashboard', icon: HomeIcon },
   { name: 'Projects', href: '/volunteer/projects', icon: CheckCircleIcon },
   { name: 'Beneficiary Application', href: '/volunteer/beneficiary-application', icon: UserIcon },
-  { name: 'Attendance', href: '/volunteer/attendance', icon: CalendarIcon },
 ];
 
 const donorNavigation = [

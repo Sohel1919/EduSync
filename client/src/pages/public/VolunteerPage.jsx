@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import VolunteerCards from '../../components/volunteer/VolunteerCards';
 import ContactVolunteerModal from '../../components/volunteer/ContactVolunteerModal';
 import { volunteersAPI } from '../../services/apiService.js';
+import Loader from '../../components/common/Loader.jsx';
 
 export default function VolunteerPage() {
   const [selectedVolunteer, setSelectedVolunteer] = useState(null);
@@ -63,12 +64,11 @@ export default function VolunteerPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading education mentors...</p>
-        </div>
-      </div>
+      <Loader 
+            type="page" 
+            message="Loading volunteers..." 
+            size="large"
+          />
     );
   }
 

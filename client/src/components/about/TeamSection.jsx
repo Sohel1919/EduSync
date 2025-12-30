@@ -1,28 +1,28 @@
 import { motion } from 'framer-motion';
-
+import { images } from '../../assets/assets';
 const team = [
   {
-    name: 'Dr. Priya Sharma',
+    name: 'Shaikh Sohel',
     role: 'Executive Director',
-    image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+    image: images.sohel,
     bio: '15+ years in educational leadership with expertise in rural education development and digital learning initiatives.',
   },
   {
-    name: 'Rahul Verma',
+    name: 'Pradeep Haldekar',
     role: 'Program Director',
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+    image: images.pradeep,
     bio: 'Specialized in designing scalable education programs, scholarship systems, and community outreach strategies.',
   },
   {
-    name: 'Anjali Patel',
+    name: 'Shejal Burele',
     role: 'Operations Director',
-    image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+    image: images.shejal,
     bio: 'Expert in educational operations, volunteer coordination, and implementing digital learning infrastructure.',
   },
   {
-    name: 'Kiran Desai',
+    name: 'Tryambak Panchal',
     role: 'Technology Lead',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+    image: images.tryambak,
     bio: 'Building digital education platforms and e-learning solutions to enhance remote learning accessibility.',
   }
 ];
@@ -62,7 +62,7 @@ export default function TeamSection() {
               viewport={{ once: true }}
               className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300"
             >
-              <div className="h-48 overflow-hidden">
+              <div className="h-64 overflow-hidden">
                 <img
                   src={member.image}
                   alt={member.name}

@@ -4,6 +4,7 @@ import DonationForm from '../../components/donation/DonationForm.jsx';
 import DonationHistory from '../../components/donation/DonationHistory.jsx';
 import PaymentSuccess from '../../components/donation/PaymentSuccess.jsx';
 import { donationsAPI } from '../../services/apiService.js';
+import Loader from '../../components/common/Loader.jsx';
 import { toast } from 'react-hot-toast';
 
 export default function DonationPage() {
