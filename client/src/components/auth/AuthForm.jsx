@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { EyeIcon, EyeSlashIcon, UserIcon, PhotoIcon } from '@heroicons/react/24/outline';
+import { EyeIcon, EyeSlashIcon, UserIcon, PhotoIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -125,16 +125,53 @@ const AuthForm = ({ type = 'signin' }) => {
         <div className="text-center">
           <div className="flex justify-center mb-6">
             <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-2xl">
-              <span className="text-white text-2xl font-bold">CS</span>
+              <span className="text-white text-2xl font-bold">ES</span>
             </div>
           </div>
           <h2 className="text-3xl font-bold text-gray-900">
-            {isSignIn ? 'Welcome Back' : 'Join CareSync'}
+            {isSignIn ? 'Welcome Back' : 'Join EduSync'}
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             {isSignIn ? 'Sign in to your account' : 'Create your account to get started'}
           </p>
         </div>
+
+        {/* Notes Section */}
+        {isSignIn ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="bg-blue-50 border border-blue-200 rounded-lg p-4"
+          >
+            <div className="flex items-start">
+              <InformationCircleIcon className="w-5 h-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
+              <div className="text-sm text-blue-800">
+                <p className="font-medium mb-1">Demo Accounts:</p>
+                <div className="space-y-1">
+                  <p><span className="font-semibold">Admin:</span> shaikhsohel01919@gmail.com</p>
+                  <p><span className="font-semibold">Password:</span> Admin@123</p>
+                  <p className="mt-2"><span className="font-semibold">Volunteer:</span> sohelshaikh3636@gmail.com</p>
+                  <p><span className="font-semibold">Password:</span> Volunteer@123</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="bg-amber-50 border border-amber-200 rounded-lg p-4"
+          >
+            <div className="flex items-start">
+              <InformationCircleIcon className="w-5 h-5 text-amber-600 mt-0.5 mr-2 flex-shrink-0" />
+              <p className="text-sm text-amber-800">
+                <span className="font-medium">Note:</span> Due to domain issues, OTP is not being sent. Please use the already created demo accounts from the sign-in page.
+              </p>
+            </div>
+          </motion.div>
+        )}
 
         {/* Form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
